@@ -213,8 +213,7 @@ function buildHtml(d) {
         '</div>' +
         '<div class="legend"><span><i class="dot" style="background:#2E9E9E"></i>Mood</span><span><i class="dot" style="background:#D4A843"></i>Stress</span><span><i class="dot" style="background:#1B3A6B"></i>Energy</span></div>' +
       '</div>' +
-      '<div class="card col-4"><div class="card-head"><div class="card-title">Nutrition</div><div class="card-hint">sample data</div></div><div class="macro"><div class="macro-top"><b>Protein</b><span class="muted">131 / 142 g</span></div><div class="track"><i style="width:92%; background:var(--teal)"></i></div></div><div class="macro"><div class="macro-top"><b>Calories</b><span class="muted">1180 / 2100 kcal</span></div><div class="track"><i style="width:56%; background:var(--gold)"></i></div></div><div class="macro"><div class="macro-top"><b>Hydration</b><span class="muted">2.1 / 3.1 L</span></div><div class="track"><i style="width:68%; background:#5bb8d4"></i></div></div><div class="coach-tip"><span>&#x1F4A1; Connect your nutrition data to see real values here.</span></div></div>' +
-    '</div>' +
+'<div class="card col-4"><div class="card-head"><div class="card-title">Nutrition</div><div class="card-hint" id="nutriDate">--</div></div><div class="macro"><div class="macro-top"><b>Calories</b><span class="muted" id="nCalTxt">-- / 2100 kcal</span></div><div class="track"><i id="nCalBar" style="width:0%; background:var(--gold)"></i></div></div><div class="macro"><div class="macro-top"><b>Protein</b><span class="muted" id="nProTxt">-- / 140 g</span></div><div class="track"><i id="nProBar" style="width:0%; background:var(--teal)"></i></div></div><div class="macro"><div class="macro-top"><b>Carbs</b><span class="muted" id="nCarTxt">-- / 250 g</span></div><div class="track"><i id="nCarBar" style="width:0%; background:#5bb8d4"></i></div></div><div class="macro"><div class="macro-top"><b>Fat</b><span class="muted" id="nFatTxt">-- / 70 g</span></div><div class="track"><i id="nFatBar" style="width:0%; background:#c47fd4"></i></div></div></div>' +    '</div>' +
     '<div class="grid">' +
       '<div class="card col-6 music"><div class="music-head"><div class="cover">&#x1F3B5;</div><div class="music-meta"><div class="mt">Weightless</div><div class="ma">Marconi Union</div><div class="music-tag">&#x25C6; Suggested for your morning focus</div></div></div><div class="music-ctrl"><button class="mplay" id="mplay">&#x25B6;</button><div class="mbar"><div class="mbar-track"><i id="mfill"></i></div><div class="mbar-time"><span id="mcur">0:00</span><span>8:10</span></div></div></div><div class="quote"><p class="quote-text">Waste no more time arguing what a good man should be. Be one.</p><div class="quote-author">- Marc Aurele</div></div></div>' +
       '<div class="card col-6 weather"><div class="weather-top"><div><div class="weather-city">Location</div><div class="weather-desc">Clear day</div></div><div class="sky" id="sky"></div></div><div class="temps"><div class="temp"><div class="tlab">Morning</div><div class="tval">--</div></div><div class="temp"><div class="tlab">Afternoon</div><div class="tval">--</div></div></div><div class="weather-note">Have a great day, Thomas.</div></div>' +
@@ -379,7 +378,24 @@ export default function Home() {
         });
       }
 
-      fetch('/api/checkin')
+      fetch('/api/nutrition')
+        .then(function(r) { return r.json(); })
+        .then(function(n) {
+          if (!n) return;
+          var goals = { cal: 2100, pro: 140, car: 250, fat: 70 };
+          function set(txtId, barId, val, goal, unit) {
+            var t = document.getElementById(txtId);
+            var b = document.getElementById(barId);
+            if (t) t.textContent = Math.round(val) + ' / ' + goal + ' ' + unit;
+            if (b) b.style.width = Math.min(100, Math.round(val / goal * 100)) + '%';
+          }
+          set('nCalTxt', 'nCalBar', n.calories || 0, goals.cal, 'kcal');
+          set('nProTxt', 'nProBar', n.proteines || 0, goals.pro, 'g');
+          set('nCarTxt', 'nCarBar', n.glucides || 0, goals.car, 'g');
+          set('nFatTxt', 'nFatBar', n.lipides || 0, goals.fat, 'g');
+          var nd = document.getElementById('nutriDate');
+          if (nd && n.date) nd.textContent = n.date;
+        });fetch('/api/checkin')
         .then(function(r) { return r.json(); })
         .then(function(cdata) {
           if (cdata && cdata.length > 0) {
