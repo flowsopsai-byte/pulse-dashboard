@@ -85,6 +85,14 @@ const styleCss = `
   .mini .big .u { font-size: 15px; color: var(--mist); font-weight: 600; }
   .mini .cap { font-size: 12px; color: var(--slate); margin-top: 3px; }
   .mini + .mini { border-left: 1px solid var(--line); }
+.today-card .mini-row { gap: 10px; }
+  .today-card .mini { padding: 14px 6px; background: var(--well); border-radius: 14px; }
+  .today-card .mini + .mini { border-left: none; }
+  .today-card .mini .ic { width: 34px; height: 34px; margin: 0 auto 9px; border-radius: 10px; display: grid; place-items: center; font-size: 16px; }
+.today-card .mini .big { font-size: 26px; color: var(--teal); }
+  .today-card .card-title { color: var(--teal); }  
+  .today-card .mini .big .u { font-size: 13px; margin-left: 1px; }
+  .today-card .mini .cap { color: var(--mist); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.7px; margin-top: 3px; }  .brief { display: flex; gap: 15px; align-items: flex-start; }
   .brief-hero { border: 1px solid var(--line); background: linear-gradient(120deg, #ffffff, var(--teal-soft) 260%); }
   .brief { display: flex; gap: 15px; align-items: flex-start; }
   .play { width: 60px; height: 60px; border-radius: 14px; flex-shrink: 0; background: linear-gradient(135deg, var(--teal), var(--navy)); border: none; cursor: pointer; display: grid; place-items: center; color: white; font-size: 20px; box-shadow: 0 6px 16px rgba(46,158,158,0.3); }
@@ -187,7 +195,7 @@ function buildHtml(d) {
       '</div>' +
     '</section>' +
     '<div class="grid">' +
-      '<div class="card col-12 brief-hero">' +
+      '<div class="card col-8 brief-hero">' +
         '<div class="brief">' +
           '<button class="play" id="playBtn">&#x25B6;</button>' +
           '<div class="brief-body">' +
@@ -197,7 +205,7 @@ function buildHtml(d) {
           '</div>' +
         '</div>' +
       '</div>' +
-    '</div>' +
+'<div class="card col-4 today-card"><div class="card-head"><div class="card-title">Today</div><div class="card-hint" id="garminDate">--</div></div><div class="mini-row"><div class="mini"><div class="ic" style="background:var(--teal-soft)">&#x1F45F;</div><div class="big" id="gSteps">--</div><div class="cap">Steps</div></div><div class="mini"><div class="ic" style="background:#e7e2f7">&#x1F634;</div><div class="big" id="gSleep">--<span class="u">h</span></div><div class="cap">Sleep</div></div><div class="mini"><div class="ic" style="background:#fae0e0">&#x2764;&#xFE0F;</div><div class="big" id="gHr">--<span class="u">bpm</span></div><div class="cap">Resting HR</div></div></div></div>' +    '</div>' +
     '<div class="grid">' +
       '<div class="card col-8"><div class="card-head"><div class="card-title">Pulse Score trend</div><div class="card-hint">Last 30 days</div></div>' +
         '<div class="axis-wrap">' + axisLayer([25, 50, 75, 100], 100) +
@@ -400,7 +408,19 @@ export default function Home() {
         });
       }
 
-      fetch('/api/nutrition')
+      fetch('/api/garmin')
+        .then(function(r) { return r.json(); })
+        .then(function(g) {
+          if (!g) return;
+          var st = document.getElementById('gSteps');
+          var sl = document.getElementById('gSleep');
+          var hr = document.getElementById('gHr');
+          var gd = document.getElementById('garminDate');
+          if (st) st.textContent = String(g.total_steps || 0);
+          if (sl) sl.innerHTML = (g.sleep_hours || 0) + '<span class="u">h</span>';
+          if (hr) hr.innerHTML = (g.resting_hr || 0) + '<span class="u">bpm</span>';
+          if (gd && g.date) gd.textContent = g.date;
+        });fetch('/api/nutrition')
         .then(function(r) { return r.json(); })
         .then(function(n) {
           if (!n) return;
