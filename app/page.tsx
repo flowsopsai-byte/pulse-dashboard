@@ -329,10 +329,32 @@ export default function Home() {
           wave.appendChild(b);
         }
       }
+      var briefAudio = null;
+      var briefPlaying = false;
       var playBtn = document.getElementById('playBtn');
+      fetch('/api/briefing')
+        .then(function(r) { return r.json(); })
+        .then(function(bd) {
+          if (bd && bd[0] && bd[0].audio_url) {
+            briefAudio = new Audio(bd[0].audio_url);
+            briefAudio.addEventListener('ended', function() {
+              briefPlaying = false;
+              if (playBtn) playBtn.textContent = '\u25B6';
+            });
+          }
+        });
       if (playBtn) {
         playBtn.addEventListener('click', function() {
-          playBtn.textContent = playBtn.textContent === '\u25B6' ? '\u275A\u275A' : '\u25B6';
+          if (!briefAudio) return;
+          if (briefPlaying) {
+            briefAudio.pause();
+            briefPlaying = false;
+            playBtn.textContent = '\u25B6';
+          } else {
+            briefAudio.play();
+            briefPlaying = true;
+            playBtn.textContent = '\u275A\u275A';
+          }
         });
       }
 
