@@ -11,8 +11,8 @@ export async function GET() {
     .from('garmin_data')
     .select('date, total_steps, sleep_hours, resting_hr, body_battery_max')
     .order('date', { ascending: false })
-    .limit(1)
+    .limit(2)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(data && data[0] ? data[0] : {})
+  return NextResponse.json(data && data[1] ? data[1] : (data && data[0] ? data[0] : {}))
 }
