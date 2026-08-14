@@ -114,8 +114,8 @@ const styleCss = `
   .mbar-time { display: flex; justify-content: space-between; font-size: 11px; color: var(--mist); margin-top: 6px; }
   .quote { margin-top: 20px; padding: 20px 8px 4px; border-top: 1px solid var(--line); text-align: center; }
   .quote-text { font-size: 14px; font-style: italic; color: var(--slate); line-height: 1.6; }
-  .quote-text::before { content: open-quote; color: var(--gold); font-family: Georgia, serif; font-size: 20px; font-style: normal; }
-  .quote-text::after { content: close-quote; color: var(--gold); font-family: Georgia, serif; font-size: 20px; font-style: normal; }
+  .quote-text::before { content: "\201C"; color: var(--gold); font-family: Georgia, serif; font-size: 20px; font-style: normal; }
+  .quote-text::after { content: "\201D"; color: var(--gold); font-family: Georgia, serif; font-size: 20px; font-style: normal; }
   .quote-author { font-size: 12px; font-weight: 600; color: var(--navy); margin-top: 12px; }
   .footer-note { text-align: center; font-size: 12px; color: var(--mist); margin-top: 30px; }
   @media (max-width: 860px) {
