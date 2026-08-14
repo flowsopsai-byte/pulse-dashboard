@@ -351,7 +351,29 @@ export default function Home() {
           }
         });
       }
-    }
+    }fetch('/api/briefing')
+      .then(function(r) { return r.json(); })
+      .then(function(bdata) {
+        if (bdata && bdata[0] && bdata[0].audio_url) {
+          var audioUrl = bdata[0].audio_url;
+          var briefPlayBtn = document.getElementById('playBtn');
+          var briefAudio = new Audio(audioUrl);
+          var briefPlaying = false;
+          if (briefPlayBtn) {
+            briefPlayBtn.onclick = function() {
+              if (!briefPlaying) {
+                briefAudio.play();
+                briefPlaying = true;
+                briefPlayBtn.textContent = '\u275A\u275A';
+              } else {
+                briefAudio.pause();
+                briefPlaying = false;
+                briefPlayBtn.textContent = '\u25B6';
+              }
+            };
+          }
+        }
+      });
   }, []);
 
   return (
