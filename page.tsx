@@ -350,7 +350,37 @@ export default function Home() {
             playing = false; mplay.textContent = '\u25B6';
           }
         });
+      }fetch('/api/checkin')
+  .then(function(r) { return r.json(); })
+  .then(function(cdata) {
+    if (cdata && cdata.length > 0) {
+      var reversed = cdata.slice().reverse();
+      var hum = reversed.map(function(d) { return d.humeur || 0; });
+      var str = reversed.map(function(d) { return d.stress || 0; });
+      var ene = reversed.map(function(d) { return d.energie || 0; });
+      var W=640, H=190, pad=14, max=10, min=0;
+      function mk(arr) {
+        return arr.map(function(v, i) {
+          return [pad+i*(W-2*pad)/(arr.length-1), H-pad-(v-min)/(max-min)*(H-2*pad)];
+        });
       }
+      function smoothPath(pts) {
+        var dstr = 'M ' + pts[0][0] + ' ' + pts[0][1];
+        for (var i = 0; i < pts.length - 1; i++) {
+          var x0=pts[i][0], y0=pts[i][1], x1=pts[i+1][0], y1=pts[i+1][1];
+          var cx = (x0+x1)/2;
+          dstr += ' C '+cx+' '+y0+', '+cx+' '+y1+', '+x1+' '+y1;
+        }
+        return dstr;
+      }
+      function line(pts, col) {
+        return '<path d="'+smoothPath(pts)+'" fill="none" stroke="'+col+'" stroke-width="2.5" stroke-linecap="round"/>'+
+          pts.map(function(p) { return '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="3.5" fill="'+col+'"/>'; }).join('');
+      }
+      var mc = document.getElementById('moodChart');
+      if (mc) mc.innerHTML = line(mk(hum),'#2E9E9E')+line(mk(str),'#D4A843')+line(mk(ene),'#1B3A6B');
+    }
+  });
     }
   }, []);
 
