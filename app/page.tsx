@@ -55,6 +55,12 @@ const styleCss = `
   .card-title { font-size: 15px; font-weight: 700; color: var(--ink); letter-spacing: -0.2px; }
   .card-hint { font-size: 12px; color: var(--mist); }
   .chart { width: 100%; height: 190px; }
+  .axis-wrap { position: relative; padding: 0 30px; }
+  .axis-wrap .chart { display: block; width: 100%; position: relative; z-index: 1; }
+  .axis-line { position: absolute; left: 30px; right: 30px; height: 1px; background: rgba(27,58,107,0.10); z-index: 0; }
+  .axis-lab { position: absolute; transform: translateY(-50%); font-size: 11px; font-weight: 600; color: var(--mist); font-variant-numeric: tabular-nums; pointer-events: none; z-index: 2; }
+  .axis-lab.l { left: 2px; }
+  .axis-lab.r { right: 2px; }
   .legend { display: flex; gap: 16px; margin-top: 12px; }
   .legend span { font-size: 12px; color: var(--slate); display: flex; align-items: center; gap: 6px; }
   .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
@@ -114,8 +120,8 @@ const styleCss = `
   .mbar-time { display: flex; justify-content: space-between; font-size: 11px; color: var(--mist); margin-top: 6px; }
   .quote { margin-top: 20px; padding: 20px 8px 4px; border-top: 1px solid var(--line); text-align: center; }
   .quote-text { font-size: 14px; font-style: italic; color: var(--slate); line-height: 1.6; }
-  .quote-text::before { content: open-quote; color: var(--gold); font-family: Georgia, serif; font-size: 20px; font-style: normal; }
-  .quote-text::after { content: close-quote; color: var(--gold); font-family: Georgia, serif; font-size: 20px; font-style: normal; }
+  .quote-text::before { content: "\\201C"; color: var(--gold); font-family: Georgia, serif; font-size: 20px; font-style: normal; }
+  .quote-text::after { content: "\\201D"; color: var(--gold); font-family: Georgia, serif; font-size: 20px; font-style: normal; }
   .quote-author { font-size: 12px; font-weight: 600; color: var(--navy); margin-top: 12px; }
   .footer-note { text-align: center; font-size: 12px; color: var(--mist); margin-top: 30px; }
   @media (max-width: 860px) {
@@ -125,6 +131,18 @@ const styleCss = `
     .hero { padding: 26px; }
   }
 `;
+
+function axisLayer(ticks, max) {
+  var H = 190, pad = 14;
+  var out = '';
+  for (var i = 0; i < ticks.length; i++) {
+    var top = ((H - pad - (ticks[i] / max) * (H - 2 * pad)) / H) * 100;
+    out += '<div class="axis-line" style="top:' + top + '%"></div>' +
+           '<span class="axis-lab l" style="top:' + top + '%">' + ticks[i] + '</span>' +
+           '<span class="axis-lab r" style="top:' + top + '%">' + ticks[i] + '</span>';
+  }
+  return out;
+}
 
 function buildHtml(d) {
   const sleep = d.detail_sommeil || 0;
@@ -181,11 +199,20 @@ function buildHtml(d) {
       '</div>' +
     '</div>' +
     '<div class="grid">' +
-      '<div class="card col-8"><div class="card-head"><div class="card-title">Pulse Score trend</div><div class="card-hint">Last 30 days</div></div><svg class="chart" id="scoreChart" viewBox="0 0 640 190" preserveAspectRatio="none"></svg></div>' +
+      '<div class="card col-8"><div class="card-head"><div class="card-title">Pulse Score trend</div><div class="card-hint">Last 30 days</div></div>' +
+        '<div class="axis-wrap">' + axisLayer([25, 50, 75, 100], 100) +
+          '<svg class="chart" id="scoreChart" viewBox="0 0 640 190" preserveAspectRatio="none"></svg>' +
+        '</div>' +
+      '</div>' +
       '<div class="card col-4"><div class="card-head"><div class="card-title">How you feel right now</div></div><div class="mood-row" id="moodRow"><button class="mood" data-v="1">&#x1F614;</button><button class="mood" data-v="2">&#x1F615;</button><button class="mood" data-v="3">&#x1F610;</button><button class="mood active" data-v="4">&#x1F642;</button><button class="mood" data-v="5">&#x1F604;</button></div><div class="mood-labels"><span>Rough</span><span></span><span>Okay</span><span></span><span>Great</span></div><button class="mood-cta" id="moodBtn">Log my mood</button></div>' +
     '</div>' +
     '<div class="grid">' +
-      '<div class="card col-8"><div class="card-head"><div class="card-title">Mood, stress &amp; energy</div><div class="card-hint">Last 7 days</div></div><svg class="chart" id="moodChart" viewBox="0 0 640 190" preserveAspectRatio="none"></svg><div class="legend"><span><i class="dot" style="background:#2E9E9E"></i>Mood</span><span><i class="dot" style="background:#D4A843"></i>Stress</span><span><i class="dot" style="background:#1B3A6B"></i>Energy</span></div></div>' +
+      '<div class="card col-8"><div class="card-head"><div class="card-title">Mood, stress &amp; energy</div><div class="card-hint">Last 7 days</div></div>' +
+        '<div class="axis-wrap">' + axisLayer([2.5, 5, 7.5, 10], 10) +
+          '<svg class="chart" id="moodChart" viewBox="0 0 640 190" preserveAspectRatio="none"></svg>' +
+        '</div>' +
+        '<div class="legend"><span><i class="dot" style="background:#2E9E9E"></i>Mood</span><span><i class="dot" style="background:#D4A843"></i>Stress</span><span><i class="dot" style="background:#1B3A6B"></i>Energy</span></div>' +
+      '</div>' +
       '<div class="card col-4"><div class="card-head"><div class="card-title">Nutrition</div><div class="card-hint">sample data</div></div><div class="macro"><div class="macro-top"><b>Protein</b><span class="muted">131 / 142 g</span></div><div class="track"><i style="width:92%; background:var(--teal)"></i></div></div><div class="macro"><div class="macro-top"><b>Calories</b><span class="muted">1180 / 2100 kcal</span></div><div class="track"><i style="width:56%; background:var(--gold)"></i></div></div><div class="macro"><div class="macro-top"><b>Hydration</b><span class="muted">2.1 / 3.1 L</span></div><div class="track"><i style="width:68%; background:#5bb8d4"></i></div></div><div class="coach-tip"><span>&#x1F4A1; Connect your nutrition data to see real values here.</span></div></div>' +
     '</div>' +
     '<div class="grid">' +
@@ -351,29 +378,30 @@ export default function Home() {
           }
         });
       }
-    }fetch('/api/briefing')
-      .then(function(r) { return r.json(); })
-      .then(function(bdata) {
-        if (bdata && bdata[0] && bdata[0].audio_url) {
-          var audioUrl = bdata[0].audio_url;
-          var briefPlayBtn = document.getElementById('playBtn');
-          var briefAudio = new Audio(audioUrl);
-          var briefPlaying = false;
-          if (briefPlayBtn) {
-            briefPlayBtn.onclick = function() {
-              if (!briefPlaying) {
-                briefAudio.play();
-                briefPlaying = true;
-                briefPlayBtn.textContent = '\u275A\u275A';
-              } else {
-                briefAudio.pause();
-                briefPlaying = false;
-                briefPlayBtn.textContent = '\u25B6';
-              }
-            };
+
+      fetch('/api/checkin')
+        .then(function(r) { return r.json(); })
+        .then(function(cdata) {
+          if (cdata && cdata.length > 0) {
+            var reversed = cdata.slice().reverse();
+            var hum = reversed.map(function(x) { return x.humeur || 0; });
+            var str = reversed.map(function(x) { return x.stress || 0; });
+            var ene = reversed.map(function(x) { return x.energie || 0; });
+            var W=640, H=190, pad=14, max=10, min=0;
+            function mk(arr) {
+              return arr.map(function(v, i) {
+                return [pad+i*(W-2*pad)/(arr.length-1), H-pad-(v-min)/(max-min)*(H-2*pad)];
+              });
+            }
+            function line(pts, col) {
+              return '<path d="'+smoothPath(pts)+'" fill="none" stroke="'+col+'" stroke-width="2.5" stroke-linecap="round"/>'+
+                pts.map(function(p) { return '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="3.5" fill="'+col+'"/>'; }).join('');
+            }
+            var mc = document.getElementById('moodChart');
+            if (mc) mc.innerHTML = line(mk(hum),'#2E9E9E')+line(mk(str),'#D4A843')+line(mk(ene),'#1B3A6B');
           }
-        }
-      });
+        });
+    }
   }, []);
 
   return (
