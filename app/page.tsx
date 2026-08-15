@@ -30,8 +30,17 @@ const styleCss = `
   .date-badge { font-size: 13px; color: var(--slate); font-weight: 500; background: var(--card); padding: 9px 16px; border-radius: 999px; border: 1px solid var(--line); }
   .hero { background: linear-gradient(140deg, var(--navy-deep), var(--navy) 55%, #234a86); border-radius: 24px; padding: 34px; color: white; position: relative; overflow: hidden; box-shadow: 0 16px 40px rgba(27,58,107,0.28); }
   .hero::after { content: ""; position: absolute; right: -80px; top: -80px; width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, rgba(46,158,158,0.35), transparent 70%); }
-  .hero-grid { display: grid; grid-template-columns: auto 1fr; gap: 40px; align-items: center; position: relative; z-index: 1; }
+.hero-grid { display: grid; grid-template-columns: auto 1fr; gap: 40px; }
   .ring-wrap { position: relative; width: 168px; height: 168px; }
+  .hero-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+  .meal-cta { display: flex; align-items: center; gap: 12px; position: relative; z-index: 2; }  .meal-btn:hover { background: rgba(255,255,255,0.22); transform: translateY(-2px); }
+  .meal-btn { width: 52px; height: 52px; border-radius: 26px; border: none; background: rgba(255,255,255,0.14); color: #fff; font-size: 22px; cursor: pointer; transition: background .25s, transform .15s; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .meal-btn:hover { background: rgba(255,255,255,0.22); transform: translateY(-2px); }
+  .meal-btn.done { background: var(--teal); }
+  .meal-btn.busy { cursor: default; }
+  .meal-lab { font-size: 12px; color: rgba(255,255,255,0.7); text-align: center; max-width: 110px; line-height: 1.35; }
+  .meal-spin { width: 22px; height: 22px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: mspin .8s linear infinite; }
+  @keyframes mspin { to { transform: rotate(360deg) } }
   .ring-num { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
   .ring-num b { font-size: 52px; font-weight: 800; letter-spacing: -2px; line-height: 1; }
   .ring-num small { font-size: 13px; opacity: 0.7; letter-spacing: 1px; }
@@ -129,7 +138,8 @@ const styleCss = `
   .sky { width: 74px; height: 74px; position: relative; flex-shrink: 0; }
   .sun-core { position: absolute; top: 50%; left: 50%; width: 34px; height: 34px; margin: -17px 0 0 -17px; background: radial-gradient(circle, #fff6d8, #ffd94a); border-radius: 50%; box-shadow: 0 0 18px rgba(255,217,74,0.9); }
   .sun-rays { position: absolute; inset: 0; animation: spin 14s linear infinite; }
-  .sun-rays i { position: absolute; top: 50%; left: 50%; width: 3px; height: 11px; margin: -25px 0 0 -1.5px; background: rgba(255,240,190,0.95); border-radius: 3px; transform-origin: 50% 25px; }  .cloud { position: absolute; background: rgba(255,255,255,0.92); border-radius: 999px; box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
+  .sun-rays i { position: absolute; top: 50%; left: 50%; width: 3px; height: 11px; margin: -25px 0 0 -1.5px; background: rgba(255,240,190,0.95); border-radius: 3px; transform-origin: 50% 25px; }
+  .cloud { position: absolute; background: rgba(255,255,255,0.92); border-radius: 999px; box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
   .cloud.c1 { width: 46px; height: 18px; top: 26px; left: 12px; }
   .cloud.c1::before { content: ""; position: absolute; width: 22px; height: 22px; background: inherit; border-radius: 50%; top: -11px; left: 8px; }
   .cloud.c1::after { content: ""; position: absolute; width: 16px; height: 16px; background: inherit; border-radius: 50%; top: -8px; left: 26px; }
@@ -211,9 +221,16 @@ function buildHtml(d) {
         '<div>' +
           '<div class="hero-label">Your Pulse Score today</div>' +
           '<div class="hero-title">Good morning, Thomas.</div>' +
-          '<div class="hero-trend">&#x1F4C8; <span>Latest score</span></div>' +
-          '<div class="breakdown">' +
-            '<div class="chip"><div class="lab">&#x1F634; Sleep</div><div class="val">' + sleep + ' / 20</div><div class="bar"><i style="width:' + Math.round(sleep/20*100) + '%"></i></div></div>' +
+'<div class="hero-row">' +
+            '<div class="hero-trend">&#x1F4C8; <span>Latest score</span></div>' +
+            '<div class="meal-cta">' +
+              '<input type="file" accept="image/*" capture="environment" id="mealInput" style="display:none">' +
+              '<div class="meal-lab" id="mealLab">Log a meal</div>' +
+              '<button class="meal-btn" id="mealBtn">&#x1F4F7;</button>' +
+            '</div>' +
+'</div>' +
+'<div class="breakdown">' +
+            '<div class="chip"><div class="lab">&#x1F634; Sleep</div><div class="val">' + sleep + ' / 20</div><div class="bar"><i style="width:' + Math.round(sleep/20*100) + '%"></i></div></div>' +            
             '<div class="chip"><div class="lab">&#x1F50B; Recovery</div><div class="val">' + recup + ' / 20</div><div class="bar"><i style="width:' + Math.round(recup/20*100) + '%"></i></div></div>' +
             '<div class="chip"><div class="lab">&#x1F4AA; Activity</div><div class="val">' + activite + ' / 20</div><div class="bar"><i style="width:' + Math.round(activite/20*100) + '%"></i></div></div>' +
             '<div class="chip"><div class="lab">&#x1F957; Nutrition</div><div class="val">' + nutrition + ' / 15</div><div class="bar"><i class="g" style="width:' + Math.round(nutrition/15*100) + '%"></i></div></div>' +
@@ -252,16 +269,16 @@ function buildHtml(d) {
       '</div>' +
       '<div class="card col-4"><div class="card-head"><div class="card-title">Nutrition</div><div class="card-hint" id="nutriDate">--</div></div><div class="macro"><div class="macro-top"><b>Calories</b><span class="muted" id="nCalTxt">-- / 2100 kcal</span></div><div class="track"><i id="nCalBar" style="width:0%; background:var(--gold)"></i></div></div><div class="macro"><div class="macro-top"><b>Protein</b><span class="muted" id="nProTxt">-- / 140 g</span></div><div class="track"><i id="nProBar" style="width:0%; background:var(--teal)"></i></div></div><div class="macro"><div class="macro-top"><b>Carbs</b><span class="muted" id="nCarTxt">-- / 250 g</span></div><div class="track"><i id="nCarBar" style="width:0%; background:#5bb8d4"></i></div></div><div class="macro"><div class="macro-top"><b>Fat</b><span class="muted" id="nFatTxt">-- / 70 g</span></div><div class="track"><i id="nFatBar" style="width:0%; background:#c47fd4"></i></div></div></div>' +
     '</div>' +
-'<div class="grid">' +
+    '<div class="grid">' +
       '<div class="card col-12"><div class="card-head"><div class="card-title">Sessions this week</div><div class="card-hint" id="weekCount">--</div></div><div class="week-row" id="weekRow"></div></div>' +
     '</div>' +
-    '<div class="grid">' +      
-    '<div class="card col-6 music"><div class="music-head"><div class="cover">&#x1F3B5;</div><div class="music-meta"><div class="mt">Weightless</div><div class="ma">Marconi Union</div><div class="music-tag">&#x25C6; Suggested for your morning focus</div></div></div><div class="music-ctrl"><button class="mplay" id="mplay">&#x25B6;</button><div class="mbar"><div class="mbar-track"><i id="mfill"></i></div><div class="mbar-time"><span id="mcur">0:00</span><span>8:10</span></div></div></div><div class="quote"><p class="quote-text">Waste no more time arguing what a good man should be. Be one.</p><div class="quote-author">- Marc Aurele</div></div></div>' +
+    '<div class="grid">' +
+      '<div class="card col-6 music"><div class="music-head"><div class="cover">&#x1F3B5;</div><div class="music-meta"><div class="mt">Weightless</div><div class="ma">Marconi Union</div><div class="music-tag">&#x25C6; Suggested for your morning focus</div></div></div><div class="music-ctrl"><button class="mplay" id="mplay">&#x25B6;</button><div class="mbar"><div class="mbar-track"><i id="mfill"></i></div><div class="mbar-time"><span id="mcur">0:00</span><span>8:10</span></div></div></div><div class="quote"><p class="quote-text">Waste no more time arguing what a good man should be. Be one.</p><div class="quote-author">- Marc Aurele</div></div></div>' +
       '<div class="card col-6 weather"><div class="weather-top"><div><div class="weather-city">Location</div><div class="weather-desc">--</div></div><div class="sky" id="sky"></div></div><div class="temps"><div class="temp"><div class="tlab">Now</div><div class="tval">--</div></div><div class="temp"><div class="tlab">Feels like</div><div class="tval">--</div></div></div><div class="weather-note">Have a great day, Thomas.</div></div>' +
     '</div>' +
     '<div class="footer-note">Pulse AI Life Coach</div>' +
-    '<div class="modal-bg" id="sessModal"><div class="modal"><h3 id="modalDay">Session</h3><div class="msub">Which muscles did you train?</div><div class="mus-row" id="musRow"></div><textarea id="sessNote" placeholder="Optional note"></textarea><div class="modal-btns"><button class="btn-cancel" id="sessCancel">Cancel</button><button class="btn-save" id="sessSave">Save</button></div></div></div>' +  '</div>';
-    '</div>';
+    '<div class="modal-bg" id="sessModal"><div class="modal"><h3 id="modalDay">Session</h3><div class="msub">Which muscles did you train?</div><div class="mus-row" id="musRow"></div><textarea id="sessNote" placeholder="Optional note"></textarea><div class="modal-btns"><button class="btn-cancel" id="sessCancel">Cancel</button><button class="btn-save" id="sessSave">Save</button></div></div></div>' +
+  '</div>';
 }
 
 export default function Home() {
@@ -282,6 +299,60 @@ export default function Home() {
       });
 
     function initDashboard(pulseScore, allData) {
+      var mealInput = document.getElementById('mealInput');
+      var mealBtn = document.getElementById('mealBtn');
+      var mealLab = document.getElementById('mealLab');
+
+      if (mealBtn && mealInput) {
+        mealBtn.onclick = function () {
+          if (mealBtn.classList.contains('busy')) return;
+          mealInput.click();
+        };
+
+        mealInput.onchange = function () {
+          var file = mealInput.files && mealInput.files[0];
+          if (!file) return;
+
+          mealBtn.classList.add('busy');
+          mealBtn.innerHTML = '<span class="meal-spin"></span>';
+          mealLab.textContent = 'Analysing...';
+
+          createImageBitmap(file).then(function (bmp) {
+            var max = 900;
+            var scale = Math.min(max / bmp.width, max / bmp.height, 1);
+            var cv = document.createElement('canvas');
+            cv.width = Math.round(bmp.width * scale);
+            cv.height = Math.round(bmp.height * scale);
+            cv.getContext('2d').drawImage(bmp, 0, 0, cv.width, cv.height);
+            var b64 = cv.toDataURL('image/jpeg', 0.8).split(',')[1];
+
+            return fetch('/api/meal', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ image: b64 })
+            });
+          }).then(function (r) {
+            if (!r.ok) throw new Error('fail');
+            mealBtn.classList.remove('busy');
+            mealBtn.classList.add('done');
+            mealBtn.innerHTML = '&#x2713;';
+            mealLab.innerHTML = '<a href="/nutrition" style="color:#fff;text-decoration:underline">See details</a>';
+            setTimeout(function () {
+              mealBtn.classList.remove('done');
+              mealBtn.innerHTML = '&#x1F4F7;';
+              mealLab.textContent = 'Log a meal';
+            }, 6000);
+          }).catch(function () {
+            mealBtn.classList.remove('busy');
+            mealBtn.innerHTML = '&#x1F4F7;';
+            mealLab.textContent = 'Failed, try again';
+            setTimeout(function () { mealLab.textContent = 'Log a meal'; }, 4000);
+          });
+
+          mealInput.value = '';
+        };
+      }
+
       var d = new Date();
       var jours = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
       var mois = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -467,11 +538,11 @@ export default function Home() {
           if (tv[0]) tv[0].textContent = w.temp + '\u00B0';
           if (tv[1]) tv[1].textContent = w.feels + '\u00B0';
           if (nt && w.feels >= 35) nt.textContent = 'High heat index. Increase your hydration today.';
-drawSky(w.icon);
+          drawSky(w.icon);
         });
 
-      fetch('/api/garmin')        
-      .then(function(r) { return r.json(); })
+      fetch('/api/garmin')
+        .then(function(r) { return r.json(); })
         .then(function(g) {
           if (!g) return;
           var st = document.getElementById('gSteps');
@@ -488,7 +559,7 @@ drawSky(w.icon);
         .then(function(r) { return r.json(); })
         .then(function(n) {
           if (!n) return;
-          var goals = { cal: 2100, pro: 140, car: 250, fat: 70 };
+          var goals = { cal: 2750, pro: 195, car: 285, fat: 92 };
           function set(txtId, barId, val, goal, unit) {
             var t = document.getElementById(txtId);
             var b = document.getElementById(barId);
@@ -594,7 +665,9 @@ drawSky(w.icon);
 
       fetch('/api/sessions')
         .then(function(r) { return r.json(); })
-        .then(function(d) { sessData = d || []; renderWeek(); });fetch('/api/checkin')
+        .then(function(d) { sessData = d || []; renderWeek(); });
+
+      fetch('/api/checkin')
         .then(function(r) { return r.json(); })
         .then(function(cdata) {
           if (cdata && cdata.length > 0) {
