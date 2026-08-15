@@ -9,10 +9,16 @@ const supabase = createClient(
 export async function GET() {
   const { data, error } = await supabase
     .from('garmin_data')
-    .select('date, total_steps, sleep_hours, resting_hr, body_battery_max')
+    .select('date, total_steps, sleep_hours, resting_hr, body_battery_max, created_at')
     .order('date', { ascending: false })
-    .limit(2)
+    .order('created_at', { ascending: false })
+    .limit(50)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(data && data[1] ? data[1] : (data && data[0] ? data[0] : {}))
+
+  const rows = data || []
+  const today = rows[0]?.date
+  const prev = rows.find((r: any) => r.date !== today)
+
+  return NextResponse.json(prev || rows[0] || {})
 }

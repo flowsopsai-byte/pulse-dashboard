@@ -85,14 +85,14 @@ const styleCss = `
   .mini .big .u { font-size: 15px; color: var(--mist); font-weight: 600; }
   .mini .cap { font-size: 12px; color: var(--slate); margin-top: 3px; }
   .mini + .mini { border-left: 1px solid var(--line); }
-.today-card .mini-row { gap: 10px; }
+  .today-card .mini-row { gap: 10px; }
   .today-card .mini { padding: 14px 6px; background: var(--well); border-radius: 14px; }
   .today-card .mini + .mini { border-left: none; }
   .today-card .mini .ic { width: 34px; height: 34px; margin: 0 auto 9px; border-radius: 10px; display: grid; place-items: center; font-size: 16px; }
-.today-card .mini .big { font-size: 26px; color: var(--teal); }
-  .today-card .card-title { color: var(--teal); }  
+  .today-card .mini .big { font-size: 26px; color: var(--teal); }
+  .today-card .card-title { color: var(--teal); }
   .today-card .mini .big .u { font-size: 13px; margin-left: 1px; }
-  .today-card .mini .cap { color: var(--mist); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.7px; margin-top: 3px; }  .brief { display: flex; gap: 15px; align-items: flex-start; }
+  .today-card .mini .cap { color: var(--mist); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.7px; margin-top: 3px; }
   .brief-hero { border: 1px solid var(--line); background: linear-gradient(120deg, #ffffff, var(--teal-soft) 260%); }
   .brief { display: flex; gap: 15px; align-items: flex-start; }
   .play { width: 60px; height: 60px; border-radius: 14px; flex-shrink: 0; background: linear-gradient(135deg, var(--teal), var(--navy)); border: none; cursor: pointer; display: grid; place-items: center; color: white; font-size: 20px; box-shadow: 0 6px 16px rgba(46,158,158,0.3); }
@@ -107,7 +107,13 @@ const styleCss = `
   .sky { width: 74px; height: 74px; position: relative; flex-shrink: 0; }
   .sun-core { position: absolute; top: 50%; left: 50%; width: 34px; height: 34px; margin: -17px 0 0 -17px; background: radial-gradient(circle, #fff6d8, #ffd94a); border-radius: 50%; box-shadow: 0 0 18px rgba(255,217,74,0.9); }
   .sun-rays { position: absolute; inset: 0; animation: spin 14s linear infinite; }
-  .sun-rays i { position: absolute; top: 50%; left: 50%; width: 3px; height: 11px; margin: -5.5px 0 0 -1.5px; background: rgba(255,240,190,0.95); border-radius: 3px; transform-origin: 50% 0; }
+  .sun-rays i { position: absolute; top: 50%; left: 50%; width: 3px; height: 11px; margin: -25px 0 0 -1.5px; background: rgba(255,240,190,0.95); border-radius: 3px; transform-origin: 50% 25px; }  .cloud { position: absolute; background: rgba(255,255,255,0.92); border-radius: 999px; box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
+  .cloud.c1 { width: 46px; height: 18px; top: 26px; left: 12px; }
+  .cloud.c1::before { content: ""; position: absolute; width: 22px; height: 22px; background: inherit; border-radius: 50%; top: -11px; left: 8px; }
+  .cloud.c1::after { content: ""; position: absolute; width: 16px; height: 16px; background: inherit; border-radius: 50%; top: -8px; left: 26px; }
+  .cloud.c2 { width: 30px; height: 12px; top: 44px; left: 32px; opacity: 0.65; }
+  .drop { position: absolute; top: 46px; width: 2.5px; height: 9px; background: rgba(255,255,255,0.9); border-radius: 2px; animation: fall 1.1s linear infinite; }
+  @keyframes fall { 0% { transform: translateY(0); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(22px); opacity: 0; } }
   @keyframes spin { to { transform: rotate(360deg); } }
   .temps { display: flex; gap: 22px; position: relative; z-index: 2; margin-top: 20px; }
   .temp .tlab { font-size: 11px; opacity: 0.8; display: flex; align-items: center; gap: 5px; }
@@ -205,7 +211,8 @@ function buildHtml(d) {
           '</div>' +
         '</div>' +
       '</div>' +
-'<div class="card col-4 today-card"><div class="card-head"><div class="card-title">Yesterday</div><div class="card-hint" id="garminDate">--</div></div><div class="mini-row"><div class="mini"><div class="ic" style="background:var(--teal-soft)">&#x1F45F;</div><div class="big" id="gSteps">--</div><div class="cap">Steps</div></div><div class="mini"><div class="ic" style="background:#e7e2f7">&#x1F634;</div><div class="big" id="gSleep">--<span class="u">h</span></div><div class="cap">Sleep</div></div><div class="mini"><div class="ic" style="background:#fae0e0">&#x2764;&#xFE0F;</div><div class="big" id="gHr">--<span class="u">bpm</span></div><div class="cap">Resting HR</div></div></div></div>' +    '</div>' +
+      '<div class="card col-4 today-card"><div class="card-head"><div class="card-title">Yesterday</div><div class="card-hint" id="garminDate">--</div></div><div class="mini-row"><div class="mini"><div class="ic" style="background:var(--teal-soft)">&#x1F45F;</div><div class="big" id="gSteps">--</div><div class="cap">Steps</div></div><div class="mini"><div class="ic" style="background:#e7e2f7">&#x1F634;</div><div class="big" id="gSleep">--<span class="u">h</span></div><div class="cap">Sleep</div></div><div class="mini"><div class="ic" style="background:#fae0e0">&#x2764;&#xFE0F;</div><div class="big" id="gHr">--<span class="u">bpm</span></div><div class="cap">Resting HR</div></div></div></div>' +
+    '</div>' +
     '<div class="grid">' +
       '<div class="card col-8"><div class="card-head"><div class="card-title">Pulse Score trend</div><div class="card-hint">Last 30 days</div></div>' +
         '<div class="axis-wrap">' + axisLayer([25, 50, 75, 100], 100) +
@@ -221,10 +228,11 @@ function buildHtml(d) {
         '</div>' +
         '<div class="legend"><span><i class="dot" style="background:#2E9E9E"></i>Mood</span><span><i class="dot" style="background:#D4A843"></i>Stress</span><span><i class="dot" style="background:#1B3A6B"></i>Energy</span></div>' +
       '</div>' +
-'<div class="card col-4"><div class="card-head"><div class="card-title">Nutrition</div><div class="card-hint" id="nutriDate">--</div></div><div class="macro"><div class="macro-top"><b>Calories</b><span class="muted" id="nCalTxt">-- / 2100 kcal</span></div><div class="track"><i id="nCalBar" style="width:0%; background:var(--gold)"></i></div></div><div class="macro"><div class="macro-top"><b>Protein</b><span class="muted" id="nProTxt">-- / 140 g</span></div><div class="track"><i id="nProBar" style="width:0%; background:var(--teal)"></i></div></div><div class="macro"><div class="macro-top"><b>Carbs</b><span class="muted" id="nCarTxt">-- / 250 g</span></div><div class="track"><i id="nCarBar" style="width:0%; background:#5bb8d4"></i></div></div><div class="macro"><div class="macro-top"><b>Fat</b><span class="muted" id="nFatTxt">-- / 70 g</span></div><div class="track"><i id="nFatBar" style="width:0%; background:#c47fd4"></i></div></div></div>' +    '</div>' +
+      '<div class="card col-4"><div class="card-head"><div class="card-title">Nutrition</div><div class="card-hint" id="nutriDate">--</div></div><div class="macro"><div class="macro-top"><b>Calories</b><span class="muted" id="nCalTxt">-- / 2100 kcal</span></div><div class="track"><i id="nCalBar" style="width:0%; background:var(--gold)"></i></div></div><div class="macro"><div class="macro-top"><b>Protein</b><span class="muted" id="nProTxt">-- / 140 g</span></div><div class="track"><i id="nProBar" style="width:0%; background:var(--teal)"></i></div></div><div class="macro"><div class="macro-top"><b>Carbs</b><span class="muted" id="nCarTxt">-- / 250 g</span></div><div class="track"><i id="nCarBar" style="width:0%; background:#5bb8d4"></i></div></div><div class="macro"><div class="macro-top"><b>Fat</b><span class="muted" id="nFatTxt">-- / 70 g</span></div><div class="track"><i id="nFatBar" style="width:0%; background:#c47fd4"></i></div></div></div>' +
+    '</div>' +
     '<div class="grid">' +
       '<div class="card col-6 music"><div class="music-head"><div class="cover">&#x1F3B5;</div><div class="music-meta"><div class="mt">Weightless</div><div class="ma">Marconi Union</div><div class="music-tag">&#x25C6; Suggested for your morning focus</div></div></div><div class="music-ctrl"><button class="mplay" id="mplay">&#x25B6;</button><div class="mbar"><div class="mbar-track"><i id="mfill"></i></div><div class="mbar-time"><span id="mcur">0:00</span><span>8:10</span></div></div></div><div class="quote"><p class="quote-text">Waste no more time arguing what a good man should be. Be one.</p><div class="quote-author">- Marc Aurele</div></div></div>' +
-      '<div class="card col-6 weather"><div class="weather-top"><div><div class="weather-city">Location</div><div class="weather-desc">Clear day</div></div><div class="sky" id="sky"></div></div><div class="temps"><div class="temp"><div class="tlab">Morning</div><div class="tval">--</div></div><div class="temp"><div class="tlab">Afternoon</div><div class="tval">--</div></div></div><div class="weather-note">Have a great day, Thomas.</div></div>' +
+      '<div class="card col-6 weather"><div class="weather-top"><div><div class="weather-city">Location</div><div class="weather-desc">--</div></div><div class="sky" id="sky"></div></div><div class="temps"><div class="temp"><div class="tlab">Now</div><div class="tval">--</div></div><div class="temp"><div class="tlab">Feels like</div><div class="tval">--</div></div></div><div class="weather-note">Have a great day, Thomas.</div></div>' +
     '</div>' +
     '<div class="footer-note">Pulse AI Life Coach</div>' +
   '</div>';
@@ -337,6 +345,7 @@ export default function Home() {
           wave.appendChild(b);
         }
       }
+
       var briefAudio = null;
       var briefPlaying = false;
       var playBtn = document.getElementById('playBtn');
@@ -366,13 +375,24 @@ export default function Home() {
         });
       }
 
-      var sky = document.getElementById('sky');
-      if (sky) {
-        var rays = '';
-        for (var j = 0; j < 12; j++) {
-          rays += '<i style="transform: rotate(' + (j*30) + 'deg) translateY(-24px);"></i>';
+      function drawSky(kind) {
+        var sky = document.getElementById('sky');
+        if (!sky) return;
+        if (kind === 'Clouds' || kind === 'Mist' || kind === 'Haze' || kind === 'Fog') {
+          sky.innerHTML = '<div class="cloud c1"></div><div class="cloud c2"></div>';
+        } else if (kind === 'Rain' || kind === 'Drizzle' || kind === 'Thunderstorm') {
+          var drops = '';
+          for (var k = 0; k < 6; k++) {
+            drops += '<i class="drop" style="left:' + (14 + k * 9) + 'px; animation-delay:' + (k * 0.18) + 's"></i>';
+          }
+          sky.innerHTML = '<div class="cloud c1"></div>' + drops;
+        } else {
+          var rays = '';
+          for (var j = 0; j < 12; j++) {
+            rays += '<i style="transform: rotate(' + (j*30) + 'deg);"></i>';
+          }
+          sky.innerHTML = '<div class="sun-rays">' + rays + '</div><div class="sun-core"></div>';
         }
-        sky.innerHTML = '<div class="sun-rays">' + rays + '</div><div class="sun-core"></div>';
       }
 
       var audioCtx = null, osc = null, gain = null, playing = false, prog = 0, timer = null;
@@ -408,8 +428,24 @@ export default function Home() {
         });
       }
 
-      fetch('/api/garmin')
+      fetch('/api/weather')
         .then(function(r) { return r.json(); })
+        .then(function(w) {
+          if (!w || w.error) return;
+          var c = document.querySelector('.weather-city');
+          var ds = document.querySelector('.weather-desc');
+          var tv = document.querySelectorAll('.temp .tval');
+          var nt = document.querySelector('.weather-note');
+          if (c) c.textContent = w.city || '';
+          if (ds) ds.textContent = (w.desc || '').replace(/^./, function(m) { return m.toUpperCase(); });
+          if (tv[0]) tv[0].textContent = w.temp + '\u00B0';
+          if (tv[1]) tv[1].textContent = w.feels + '\u00B0';
+          if (nt && w.feels >= 35) nt.textContent = 'High heat index. Increase your hydration today.';
+drawSky(w.icon);
+        });
+
+      fetch('/api/garmin')        
+      .then(function(r) { return r.json(); })
         .then(function(g) {
           if (!g) return;
           var st = document.getElementById('gSteps');
@@ -420,7 +456,9 @@ export default function Home() {
           if (sl) sl.innerHTML = (g.sleep_hours || 0) + '<span class="u">h</span>';
           if (hr) hr.innerHTML = (g.resting_hr || 0) + '<span class="u">bpm</span>';
           if (gd && g.date) gd.textContent = g.date;
-        });fetch('/api/nutrition')
+        });
+
+      fetch('/api/nutrition')
         .then(function(r) { return r.json(); })
         .then(function(n) {
           if (!n) return;
@@ -437,7 +475,9 @@ export default function Home() {
           set('nFatTxt', 'nFatBar', n.lipides || 0, goals.fat, 'g');
           var nd = document.getElementById('nutriDate');
           if (nd && n.date) nd.textContent = n.date;
-        });fetch('/api/checkin')
+        });
+
+      fetch('/api/checkin')
         .then(function(r) { return r.json(); })
         .then(function(cdata) {
           if (cdata && cdata.length > 0) {
