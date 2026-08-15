@@ -93,6 +93,28 @@ const styleCss = `
   .today-card .card-title { color: var(--teal); }
   .today-card .mini .big .u { font-size: 13px; margin-left: 1px; }
   .today-card .mini .cap { color: var(--mist); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.7px; margin-top: 3px; }
+  .week-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+  .day-col { text-align: center; }
+  .day-lab { font-size: 11px; font-weight: 700; color: var(--mist); margin-bottom: 7px; text-transform: uppercase; }
+  .day-box { aspect-ratio: 1; border-radius: 12px; background: var(--well); border: 2px solid transparent; cursor: pointer; display: grid; place-items: center; font-size: 18px; transition: all .16s ease; }
+  .day-box:hover { border-color: var(--teal); transform: translateY(-2px); }
+  .day-box.done { background: var(--teal-soft); border-color: var(--teal); }
+  .day-box.today { border-color: var(--navy); }
+  .day-note { font-size: 9.5px; color: var(--mist); margin-top: 5px; line-height: 1.25; min-height: 12px; }
+  .modal-bg { position: fixed; inset: 0; background: rgba(18,41,77,0.45); display: none; place-items: center; z-index: 50; padding: 20px; }
+  .modal-bg.open { display: grid; }
+  .modal { background: #fff; border-radius: 20px; padding: 26px; width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(18,41,77,0.3); }
+  .modal h3 { font-size: 17px; color: var(--navy); margin-bottom: 4px; }
+  .modal .msub { font-size: 12.5px; color: var(--mist); margin-bottom: 18px; }
+  .mus-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .mus { padding: 8px 14px; border-radius: 999px; border: 2px solid var(--line); background: var(--well); font-size: 12.5px; font-weight: 600; color: var(--slate); cursor: pointer; transition: all .15s ease; }
+  .mus.on { background: var(--teal-soft); border-color: var(--teal); color: var(--navy); }
+  .modal textarea { width: 100%; border: 2px solid var(--line); border-radius: 12px; padding: 11px; font-size: 13px; font-family: inherit; resize: vertical; min-height: 66px; outline: none; }
+  .modal textarea:focus { border-color: var(--teal); }
+  .modal-btns { display: flex; gap: 10px; margin-top: 18px; }
+  .modal-btns button { flex: 1; padding: 12px; border: none; border-radius: 12px; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+  .btn-save { background: var(--navy); color: #fff; }
+  .btn-cancel { background: var(--well); color: var(--slate); }
   .brief-hero { border: 1px solid var(--line); background: linear-gradient(120deg, #ffffff, var(--teal-soft) 260%); }
   .brief { display: flex; gap: 15px; align-items: flex-start; }
   .play { width: 60px; height: 60px; border-radius: 14px; flex-shrink: 0; background: linear-gradient(135deg, var(--teal), var(--navy)); border: none; cursor: pointer; display: grid; place-items: center; color: white; font-size: 20px; box-shadow: 0 6px 16px rgba(46,158,158,0.3); }
@@ -230,12 +252,16 @@ function buildHtml(d) {
       '</div>' +
       '<div class="card col-4"><div class="card-head"><div class="card-title">Nutrition</div><div class="card-hint" id="nutriDate">--</div></div><div class="macro"><div class="macro-top"><b>Calories</b><span class="muted" id="nCalTxt">-- / 2100 kcal</span></div><div class="track"><i id="nCalBar" style="width:0%; background:var(--gold)"></i></div></div><div class="macro"><div class="macro-top"><b>Protein</b><span class="muted" id="nProTxt">-- / 140 g</span></div><div class="track"><i id="nProBar" style="width:0%; background:var(--teal)"></i></div></div><div class="macro"><div class="macro-top"><b>Carbs</b><span class="muted" id="nCarTxt">-- / 250 g</span></div><div class="track"><i id="nCarBar" style="width:0%; background:#5bb8d4"></i></div></div><div class="macro"><div class="macro-top"><b>Fat</b><span class="muted" id="nFatTxt">-- / 70 g</span></div><div class="track"><i id="nFatBar" style="width:0%; background:#c47fd4"></i></div></div></div>' +
     '</div>' +
-    '<div class="grid">' +
-      '<div class="card col-6 music"><div class="music-head"><div class="cover">&#x1F3B5;</div><div class="music-meta"><div class="mt">Weightless</div><div class="ma">Marconi Union</div><div class="music-tag">&#x25C6; Suggested for your morning focus</div></div></div><div class="music-ctrl"><button class="mplay" id="mplay">&#x25B6;</button><div class="mbar"><div class="mbar-track"><i id="mfill"></i></div><div class="mbar-time"><span id="mcur">0:00</span><span>8:10</span></div></div></div><div class="quote"><p class="quote-text">Waste no more time arguing what a good man should be. Be one.</p><div class="quote-author">- Marc Aurele</div></div></div>' +
+'<div class="grid">' +
+      '<div class="card col-12"><div class="card-head"><div class="card-title">Sessions this week</div><div class="card-hint" id="weekCount">--</div></div><div class="week-row" id="weekRow"></div></div>' +
+    '</div>' +
+    '<div class="grid">' +      
+    '<div class="card col-6 music"><div class="music-head"><div class="cover">&#x1F3B5;</div><div class="music-meta"><div class="mt">Weightless</div><div class="ma">Marconi Union</div><div class="music-tag">&#x25C6; Suggested for your morning focus</div></div></div><div class="music-ctrl"><button class="mplay" id="mplay">&#x25B6;</button><div class="mbar"><div class="mbar-track"><i id="mfill"></i></div><div class="mbar-time"><span id="mcur">0:00</span><span>8:10</span></div></div></div><div class="quote"><p class="quote-text">Waste no more time arguing what a good man should be. Be one.</p><div class="quote-author">- Marc Aurele</div></div></div>' +
       '<div class="card col-6 weather"><div class="weather-top"><div><div class="weather-city">Location</div><div class="weather-desc">--</div></div><div class="sky" id="sky"></div></div><div class="temps"><div class="temp"><div class="tlab">Now</div><div class="tval">--</div></div><div class="temp"><div class="tlab">Feels like</div><div class="tval">--</div></div></div><div class="weather-note">Have a great day, Thomas.</div></div>' +
     '</div>' +
     '<div class="footer-note">Pulse AI Life Coach</div>' +
-  '</div>';
+    '<div class="modal-bg" id="sessModal"><div class="modal"><h3 id="modalDay">Session</h3><div class="msub">Which muscles did you train?</div><div class="mus-row" id="musRow"></div><textarea id="sessNote" placeholder="Optional note"></textarea><div class="modal-btns"><button class="btn-cancel" id="sessCancel">Cancel</button><button class="btn-save" id="sessSave">Save</button></div></div></div>' +  '</div>';
+    '</div>';
 }
 
 export default function Home() {
@@ -477,7 +503,98 @@ drawSky(w.icon);
           if (nd && n.date) nd.textContent = n.date;
         });
 
-      fetch('/api/checkin')
+      var MUSCLES = ['Chest','Back','Triceps','Biceps','Shoulders','Legs','Cardio','Abs'];
+      var sessData = [];
+      var modalDate = null;
+      var picked = [];
+
+      function isoDay(offset) {
+        var t = new Date();
+        t.setDate(t.getDate() - offset);
+        return t.getFullYear() + '-' + String(t.getMonth()+1).padStart(2,'0') + '-' + String(t.getDate()).padStart(2,'0');
+      }
+
+      function renderWeek() {
+        var row = document.getElementById('weekRow');
+        if (!row) return;
+        var labs = ['S','M','T','W','T','F','S'];
+        var html = '';
+        var count = 0;
+        for (var i = 6; i >= 0; i--) {
+          var iso = isoDay(i);
+          var dt = new Date(iso + 'T00:00:00');
+          var hit = sessData.filter(function(s) { return s.date === iso; });
+          var done = hit.length > 0;
+          if (done) count++;
+          var mus = done ? hit.map(function(s) { return s.muscles || ''; }).join(', ') : '';
+          html += '<div class="day-col">' +
+            '<div class="day-lab">' + labs[dt.getDay()] + '</div>' +
+            '<div class="day-box' + (done ? ' done' : '') + (i === 0 ? ' today' : '') + '" data-date="' + iso + '">' +
+              (done ? '&#x2714;' : '&#x2b;') +
+            '</div>' +
+            '<div class="day-note">' + mus + '</div>' +
+          '</div>';
+        }
+        row.innerHTML = html;
+        var wc = document.getElementById('weekCount');
+        if (wc) wc.textContent = count + ' / 5 sessions';
+        row.querySelectorAll('.day-box').forEach(function(b) {
+          b.addEventListener('click', function() { openModal(b.getAttribute('data-date')); });
+        });
+      }
+
+      function openModal(iso) {
+        modalDate = iso;
+        picked = [];
+        var mr = document.getElementById('musRow');
+        if (mr) {
+          mr.innerHTML = MUSCLES.map(function(m) { return '<div class="mus" data-m="' + m + '">' + m + '</div>'; }).join('');
+          mr.querySelectorAll('.mus').forEach(function(el) {
+            el.addEventListener('click', function() {
+              var m = el.getAttribute('data-m');
+              if (picked.indexOf(m) === -1) { picked.push(m); el.classList.add('on'); }
+              else { picked.splice(picked.indexOf(m), 1); el.classList.remove('on'); }
+            });
+          });
+        }
+        var md = document.getElementById('modalDay');
+        if (md) md.textContent = iso;
+        var na = document.getElementById('sessNote');
+        if (na) na.value = '';
+        var bg = document.getElementById('sessModal');
+        if (bg) bg.classList.add('open');
+      }
+
+      var sessCancel = document.getElementById('sessCancel');
+      if (sessCancel) {
+        sessCancel.addEventListener('click', function() {
+          document.getElementById('sessModal').classList.remove('open');
+        });
+      }
+      var sessSave = document.getElementById('sessSave');
+      if (sessSave) {
+        sessSave.addEventListener('click', function() {
+          if (picked.length === 0) return;
+          var note = document.getElementById('sessNote').value;
+          sessSave.textContent = 'Saving...';
+          fetch('/api/sessions/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ date: modalDate, muscles: picked.join(', ').toLowerCase(), description: note })
+          })
+            .then(function(r) { return r.json(); })
+            .then(function() {
+              sessSave.textContent = 'Save';
+              document.getElementById('sessModal').classList.remove('open');
+              return fetch('/api/sessions').then(function(r) { return r.json(); });
+            })
+            .then(function(d) { sessData = d || []; renderWeek(); });
+        });
+      }
+
+      fetch('/api/sessions')
+        .then(function(r) { return r.json(); })
+        .then(function(d) { sessData = d || []; renderWeek(); });fetch('/api/checkin')
         .then(function(r) { return r.json(); })
         .then(function(cdata) {
           if (cdata && cdata.length > 0) {
