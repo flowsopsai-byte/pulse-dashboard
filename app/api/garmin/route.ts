@@ -16,9 +16,5 @@ export async function GET() {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  const rows = data || []
-  const today = rows[0]?.date
-  const prev = rows.find((r: any) => r.date !== today)
-
-  return NextResponse.json(prev || rows[0] || {})
+  return NextResponse.json(data?.[0] || {})
 }

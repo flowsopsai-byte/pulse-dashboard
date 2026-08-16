@@ -100,8 +100,7 @@ const styleCss = `
   .today-card .mini .ic { width: 34px; height: 34px; margin: 0 auto 9px; border-radius: 10px; display: grid; place-items: center; font-size: 16px; }
   .today-card .mini .big { font-size: 26px; color: var(--teal); }
   .today-card .card-title { color: var(--teal); }
-  .today-card .mini .big .u { font-size: 13px; margin-left: 1px; }
-  .today-card .mini .cap { color: var(--mist); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.7px; margin-top: 3px; }
+  .today-card .mini .big .u { font-size: 13px; margin: 0 3px; }  .today-card .mini .cap { color: var(--mist); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.7px; margin-top: 3px; }
   .week-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
   .day-col { text-align: center; }
   .day-lab { font-size: 11px; font-weight: 700; color: var(--mist); margin-bottom: 7px; text-transform: uppercase; }
@@ -549,9 +548,11 @@ export default function Home() {
           var hr = document.getElementById('gHr');
           var gd = document.getElementById('garminDate');
           if (st) st.textContent = String(g.total_steps || 0);
-          if (sl) sl.innerHTML = (g.sleep_hours || 0) + '<span class="u">h</span>';
-          if (hr) hr.innerHTML = (g.resting_hr || 0) + '<span class="u">bpm</span>';
-          if (gd && g.date) gd.textContent = g.date;
+if (sl) {
+            var totMin = Math.round((g.sleep_hours || 0) * 60);
+            sl.innerHTML = Math.floor(totMin / 60) + '<span class="u">h</span>' + String(totMin % 60).padStart(2, '0');
+}
+          if (hr) hr.innerHTML = (g.resting_hr || 0) + '<span class="u">bpm</span>';          if (gd && g.date) gd.textContent = g.date;
         });
 
       fetch('/api/nutrition')
