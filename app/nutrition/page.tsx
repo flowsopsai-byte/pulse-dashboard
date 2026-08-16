@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import FabChat from "../components/FabChat";
 
 const GOALS = {
   calories: 2750,
@@ -208,6 +209,7 @@ export default function NutritionPage() {
   };
 
   return (
+    <>
     <div
       style={{
         minHeight: '100vh',
@@ -395,5 +397,7 @@ export default function NutritionPage() {
         )}
       </div>
     </div>
+<FabChat />
+    </>
   );
 }
