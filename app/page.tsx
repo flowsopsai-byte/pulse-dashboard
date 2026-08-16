@@ -232,9 +232,8 @@ function buildHtml(d) {
             '<div class="chip"><div class="lab">&#x1F634; Sleep</div><div class="val">' + sleep + ' / 20</div><div class="bar"><i style="width:' + Math.round(sleep/20*100) + '%"></i></div></div>' +            
             '<div class="chip"><div class="lab">&#x1F50B; Recovery</div><div class="val">' + recup + ' / 20</div><div class="bar"><i style="width:' + Math.round(recup/20*100) + '%"></i></div></div>' +
             '<div class="chip"><div class="lab">&#x1F4AA; Activity</div><div class="val">' + activite + ' / 20</div><div class="bar"><i style="width:' + Math.round(activite/20*100) + '%"></i></div></div>' +
-            '<div class="chip"><div class="lab">&#x1F957; Nutrition</div><div class="val">' + nutrition + ' / 15</div><div class="bar"><i class="g" style="width:' + Math.round(nutrition/15*100) + '%"></i></div></div>' +
-            '<div class="chip"><div class="lab">&#x1F9E0; Mood</div><div class="val">' + ressenti + ' / 25</div><div class="bar"><i style="width:' + Math.round(ressenti/25*100) + '%"></i></div></div>' +
-          '</div>' +
+            '<div class="chip"><div class="lab">&#x1F957; Nutrition</div><div class="val">' + nutrition + ' / 20</div><div class="bar"><i class="g" style="width:' + Math.round(nutrition/20*100) + '%"></i></div></div>' +            
+            '<div class="chip"><div class="lab">&#x1F9E0; Mood</div><div class="val">' + ressenti + ' / 20</div><div class="bar"><i style="width:' + Math.round(ressenti/20*100) + '%"></i></div></div>' +          '</div>' +
         '</div>' +
       '</div>' +
     '</section>' +
