@@ -80,7 +80,7 @@ export default function CoachPage() {
   return (
     <div
       style={{
-        height: '100dvh',
+        height: '100svh',
         display: 'flex',
         flexDirection: 'column',
         background: PAPER,
@@ -220,7 +220,7 @@ export default function CoachPage() {
           alignItems: 'flex-end',
           gap: 9,
           padding: '10px 12px',
-          paddingBottom: 'calc(22px + env(safe-area-inset-bottom))',
+          paddingBottom: 'calc(10px + env(safe-area-inset-bottom))',
           background: CARD,
           borderTop: `1px solid ${LINE}`,
         }}
