@@ -131,6 +131,13 @@ const styleCss = `
   .brief-body .t { font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 3px; }
   .wave { display: flex; align-items: center; gap: 3px; margin-top: 10px; height: 22px; }
   .wave i { width: 3px; background: var(--teal); border-radius: 2px; opacity: 0.55; }
+  .wave i { transition: height .09s linear; }
+  .pbar-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+  .pbar { position: relative; flex: 1; height: 14px; display: flex; align-items: center; cursor: pointer; touch-action: none; }
+  .pbar::before { content: ''; position: absolute; left: 0; right: 0; height: 4px; border-radius: 2px; background: rgba(255,255,255,.28); }
+  .pbar-fill { position: absolute; left: 0; height: 4px; width: 0%; border-radius: 2px; background: var(--teal); }
+  .pbar-knob { position: absolute; left: 0%; width: 13px; height: 13px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.3); transform: translateX(-6.5px); }
+  .pbar-dur { font-size: 12px; color: var(--slate); font-variant-numeric: tabular-nums; flex-shrink: 0; }
   .weather { background: linear-gradient(140deg, #4a7fc4, #6ea8dd 60%, #9cc9ec); color: white; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; }
   .weather-top { display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 2; }
   .weather-city { font-size: 13px; opacity: 0.85; font-weight: 500; }
@@ -245,8 +252,12 @@ function buildHtml(d) {
           '<div class="brief-body">' +
             '<div class="t">Your morning briefing</div>' +
             '<p>Your coach has analyzed your night, your mood and your week.</p>' +
-            '<div class="wave" id="wave"></div>' +
-          '</div>' +
+                '<div class="wave" id="wave"></div>' +
+                '<div class="pbar-row">' +
+                  '<div class="pbar" id="pbar"><div class="pbar-fill" id="pbarFill"></div><div class="pbar-knob" id="pbarKnob"></div></div>' +
+                  '<div class="pbar-dur" id="pbarDur">--:--</div>' +
+                '</div>' +          
+              '</div>' +
         '</div>' +
       '</div>' +
       '<div class="card col-4 today-card"><div class="card-head"><div class="card-title">Yesterday</div><div class="card-hint" id="garminDate">--</div></div><div class="mini-row"><div class="mini"><div class="ic" style="background:var(--teal-soft)">&#x1F45F;</div><div class="big" id="gSteps">--</div><div class="cap">Steps</div></div><div class="mini"><div class="ic" style="background:#e7e2f7">&#x1F634;</div><div class="big" id="gSleep">--<span class="u">h</span></div><div class="cap">Sleep</div></div><div class="mini"><div class="ic" style="background:#fae0e0">&#x2764;&#xFE0F;</div><div class="big" id="gHr">--<span class="u">bpm</span></div><div class="cap">Resting HR</div></div></div></div>' +
@@ -432,29 +443,100 @@ export default function Home() {
         });
       }
 
-      var wave = document.getElementById('wave');
+var wave = document.getElementById('wave');
+      var bars = [];
       if (wave) {
         for (var i = 0; i < 26; i++) {
           var b = document.createElement('i');
           b.style.height = (6 + Math.abs(Math.sin(i*0.7))*16) + 'px';
           wave.appendChild(b);
+          bars.push(b);
         }
       }
 
       var briefAudio = null;
       var briefPlaying = false;
       var playBtn = document.getElementById('playBtn');
+      var pbar = document.getElementById('pbar');
+      var pbarFill = document.getElementById('pbarFill');
+      var pbarKnob = document.getElementById('pbarKnob');
+      var pbarDur = document.getElementById('pbarDur');
+      var seeking = false;
+      var actx = null, analyser = null, freq = null, rafId = null;
+
+      function fmt(s) {
+        if (!isFinite(s) || s < 0) s = 0;
+        var m = Math.floor(s / 60);
+        var r = Math.floor(s % 60);
+        return m + ':' + (r < 10 ? '0' + r : r);
+      }
+
+      function setProgress(p) {
+        if (p < 0) p = 0;
+        if (p > 1) p = 1;
+        if (pbarFill) pbarFill.style.width = (p * 100) + '%';
+        if (pbarKnob) pbarKnob.style.left = (p * 100) + '%';
+      }
+
+      function idleWave() {
+        for (var i = 0; i < bars.length; i++) {
+          bars[i].style.height = (6 + Math.abs(Math.sin(i*0.7))*16) + 'px';
+        }
+      }
+
+      function drawWave() {
+        if (!analyser) return;
+        analyser.getByteFrequencyData(freq);
+        var step = Math.floor(freq.length / bars.length);
+        for (var i = 0; i < bars.length; i++) {
+          var v = freq[i * step] / 255;
+          bars[i].style.height = (5 + v * 26) + 'px';
+        }
+        rafId = requestAnimationFrame(drawWave);
+      }
+
+      function initAudioGraph() {
+        if (actx || !briefAudio) return;
+        try {
+          var AC = window.AudioContext || window.webkitAudioContext;
+          actx = new AC();
+          var src = actx.createMediaElementSource(briefAudio);
+          analyser = actx.createAnalyser();
+          analyser.fftSize = 128;
+          freq = new Uint8Array(analyser.frequencyBinCount);
+          src.connect(analyser);
+          analyser.connect(actx.destination);
+        } catch (e) { actx = null; analyser = null; }
+      }
+
       fetch('/api/briefing')
         .then(function(r) { return r.json(); })
         .then(function(bd) {
           if (bd && bd[0] && bd[0].audio_url) {
-            briefAudio = new Audio(bd[0].audio_url);
+            briefAudio = new Audio();
+            briefAudio.crossOrigin = 'anonymous';
+            briefAudio.preload = 'metadata';
+            briefAudio.src = bd[0].audio_url;
+
+            briefAudio.addEventListener('loadedmetadata', function() {
+              if (pbarDur) pbarDur.textContent = fmt(briefAudio.duration);
+            });
+            briefAudio.addEventListener('timeupdate', function() {
+              if (seeking || !briefAudio.duration) return;
+              setProgress(briefAudio.currentTime / briefAudio.duration);
+            });
             briefAudio.addEventListener('ended', function() {
               briefPlaying = false;
               if (playBtn) playBtn.textContent = '\u25B6';
+              setProgress(0);
+              briefAudio.currentTime = 0;
+              if (rafId) cancelAnimationFrame(rafId);
+              rafId = null;
+              idleWave();
             });
           }
         });
+
       if (playBtn) {
         playBtn.addEventListener('click', function() {
           if (!briefAudio) return;
@@ -462,14 +544,44 @@ export default function Home() {
             briefAudio.pause();
             briefPlaying = false;
             playBtn.textContent = '\u25B6';
+            if (rafId) cancelAnimationFrame(rafId);
+            rafId = null;
+            idleWave();
           } else {
+            initAudioGraph();
+            if (actx && actx.state === 'suspended') actx.resume();
             briefAudio.play();
             briefPlaying = true;
             playBtn.textContent = '\u275A\u275A';
+            if (analyser && !rafId) drawWave();
           }
         });
       }
 
+      if (pbar) {
+        function seekTo(clientX) {
+          if (!briefAudio || !briefAudio.duration) return;
+          var r = pbar.getBoundingClientRect();
+          var p = (clientX - r.left) / r.width;
+          if (p < 0) p = 0;
+          if (p > 1) p = 1;
+          setProgress(p);
+          briefAudio.currentTime = p * briefAudio.duration;
+        }
+        pbar.addEventListener('pointerdown', function(e) {
+          seeking = true;
+          pbar.setPointerCapture(e.pointerId);
+          seekTo(e.clientX);
+        });
+        pbar.addEventListener('pointermove', function(e) {
+          if (seeking) seekTo(e.clientX);
+        });
+        pbar.addEventListener('pointerup', function(e) {
+          seeking = false;
+          try { pbar.releasePointerCapture(e.pointerId); } catch (err) {}
+        });
+        pbar.addEventListener('pointercancel', function() { seeking = false; });
+      }
       function drawSky(kind) {
         var sky = document.getElementById('sky');
         if (!sky) return;
