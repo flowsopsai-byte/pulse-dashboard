@@ -183,11 +183,14 @@ const styleCss = `
     .col-8, .col-4, .col-6 { grid-column: span 12; }
     .hero { padding: 26px; }
   }
+    .mlink { display: inline-flex; align-items: center; gap: 7px; margin-top: 14px; padding: 9px 16px; border-radius: 20px; background: var(--teal-soft); color: var(--navy); font-size: 13px; font-weight: 600; text-decoration: none; transition: background .18s ease; }
+    .mlink:hover { background: #d3e9e9; }
 `;
 
 function axisLayer(ticks, max) {
   var H = 190, pad = 14;
   var out = '';
+  
   for (var i = 0; i < ticks.length; i++) {
     var top = ((H - pad - (ticks[i] / max) * (H - 2 * pad)) / H) * 100;
     out += '<div class="axis-line" style="top:' + top + '%"></div>' +
@@ -282,8 +285,8 @@ function buildHtml(d) {
       '<div class="card col-12"><div class="card-head"><div class="card-title">Sessions this week</div><div class="card-hint" id="weekCount">--</div></div><div class="week-row" id="weekRow"></div></div>' +
     '</div>' +
     '<div class="grid">' +
-      '<div class="card col-6 music"><div class="music-head"><div class="cover">&#x1F3B5;</div><div class="music-meta"><div class="mt">Weightless</div><div class="ma">Marconi Union</div><div class="music-tag">&#x25C6; Suggested for your morning focus</div></div></div><div class="music-ctrl"><button class="mplay" id="mplay">&#x25B6;</button><div class="mbar"><div class="mbar-track"><i id="mfill"></i></div><div class="mbar-time"><span id="mcur">0:00</span><span>8:10</span></div></div></div><div class="quote"><p class="quote-text">Waste no more time arguing what a good man should be. Be one.</p><div class="quote-author">- Marc Aurele</div></div></div>' +
-      '<div class="card col-6 weather"><div class="weather-top"><div><div class="weather-city">Location</div><div class="weather-desc">--</div></div><div class="sky" id="sky"></div></div><div class="temps"><div class="temp"><div class="tlab">Now</div><div class="tval">--</div></div><div class="temp"><div class="tlab">Feels like</div><div class="tval">--</div></div></div><div class="weather-note">Have a great day, Thomas.</div></div>' +
+'<div class="card col-6 music"><div class="music-head"><div class="cover">&#x1F3B5;</div><div class="music-meta"><div class="mt" id="mTitle">--</div><div class="ma" id="mArtist">--</div><div class="music-tag">&#x25C6; Suggested for today</div></div></div><a class="mlink" id="mLink" href="#" target="_blank" rel="noopener">Listen on YouTube</a><div class="quote"><p class="quote-text" id="qText">--</p><div class="quote-author" id="qAuthor"></div></div></div>' +      
+'<div class="card col-6 weather"><div class="weather-top"><div><div class="weather-city">Location</div><div class="weather-desc">--</div></div><div class="sky" id="sky"></div></div><div class="temps"><div class="temp"><div class="tlab">Now</div><div class="tval">--</div></div><div class="temp"><div class="tlab">Feels like</div><div class="tval">--</div></div></div><div class="weather-note">Have a great day, Thomas.</div></div>' +
     '</div>' +
     '<div class="footer-note">Pulse AI Life Coach</div>' +
     '<div class="modal-bg" id="sessModal"><div class="modal"><h3 id="modalDay">Session</h3><div class="msub">Which muscles did you train?</div><div class="mus-row" id="musRow"></div><textarea id="sessNote" placeholder="Optional note"></textarea><div class="modal-btns"><button class="btn-cancel" id="sessCancel">Cancel</button><button class="btn-save" id="sessSave">Save</button></div></div></div>' +
@@ -517,6 +520,16 @@ var wave = document.getElementById('wave');
             briefAudio.crossOrigin = 'anonymous';
             briefAudio.preload = 'metadata';
             briefAudio.src = bd[0].audio_url;
+            var b0 = bd[0];
+            var mParts = (b0.musique || '').split(' - ');
+            var mT = document.getElementById('mTitle');
+            var mA = document.getElementById('mArtist');
+            var mL = document.getElementById('mLink');
+            if (mT) mT.textContent = mParts[1] || b0.musique || '--';
+            if (mA) mA.textContent = mParts[0] || '';
+            if (mL && b0.musique_url) mL.href = b0.musique_url;
+            var qT = document.getElementById('qText');
+            if (qT) qT.textContent = b0.citation || '';
 
             briefAudio.addEventListener('loadedmetadata', function() {
               if (pbarDur) pbarDur.textContent = fmt(briefAudio.duration);

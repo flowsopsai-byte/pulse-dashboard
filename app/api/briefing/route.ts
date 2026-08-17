@@ -9,7 +9,7 @@ const supabase = createClient(
 export async function GET() {
   const { data, error } = await supabase
     .from('briefings')
-    .select('audio_url, date, contenu')
+    .select('audio_url, date, contenu, citation, musique, musique_url')
     .order('created_at', { ascending: false })
     .limit(1)
 
