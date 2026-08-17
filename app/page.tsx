@@ -536,6 +536,8 @@ var wave = document.getElementById('wave');
             if (mL && b0.musique_url) mL.href = b0.musique_url;
             var qT = document.getElementById('qText');
             if (qT) qT.textContent = b0.citation || '';
+            var qA = document.getElementById('qAuthor');
+            if (qA) qA.textContent = b0.citation_auteur ? '— ' + b0.citation_auteur : '';
 
             briefAudio.addEventListener('loadedmetadata', function() {
               if (pbarDur) pbarDur.textContent = fmt(briefAudio.duration);
