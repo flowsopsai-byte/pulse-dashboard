@@ -173,9 +173,9 @@ const styleCss = `
   .mbar-time { display: flex; justify-content: space-between; font-size: 11px; color: var(--mist); margin-top: 6px; }
   .quote { margin-top: 20px; padding: 20px 8px 4px; border-top: 1px solid var(--line); text-align: center; }
   .quote-text { font-size: 14px; font-style: italic; color: var(--slate); line-height: 1.6; }
-  .quote-text::before { content: "\\201C"; color: var(--gold); font-family: Georgia, serif; font-size: 20px; font-style: normal; }
-  .quote-text::after { content: "\\201D"; color: var(--gold); font-family: Georgia, serif; font-size: 20px; font-style: normal; }
-  .quote-author { font-size: 12px; font-weight: 600; color: var(--navy); margin-top: 12px; }
+.quote-text::before { content: "\\201C"; color: var(--gold); font-family: Georgia, serif; font-size: 20px; font-style: normal; margin-right: 4px; }
+.quote-text::after { content: "\\201D"; color: var(--gold); font-family: Georgia, serif; font-size: 20px; font-style: normal; margin-left: 4px; }  
+.quote-author { font-size: 12px; font-weight: 600; color: var(--navy); margin-top: 12px; }
   .footer-note { text-align: center; font-size: 12px; color: var(--mist); margin-top: 30px; }
   @media (max-width: 860px) {
     .hero-grid { grid-template-columns: 1fr; gap: 24px; text-align: center; }
@@ -183,8 +183,8 @@ const styleCss = `
     .col-8, .col-4, .col-6 { grid-column: span 12; }
     .hero { padding: 26px; }
   }
-    .mlink { display: inline-flex; align-items: center; gap: 7px; margin-top: 14px; padding: 9px 16px; border-radius: 20px; background: var(--teal-soft); color: var(--navy); font-size: 13px; font-weight: 600; text-decoration: none; transition: background .18s ease; }
-    .mlink:hover { background: #d3e9e9; }
+.mlink { display: inline-flex; width: fit-content; align-items: center; gap: 7px; margin-top: 14px; padding: 9px 16px; border-radius: 20px; background: #ff0000; color: #fff; font-size: 13px; font-weight: 600; text-decoration: none; transition: background .18s ease; }    
+.mlink:hover { background: #cc0000; }
 `;
 
 function axisLayer(ticks, max) {
@@ -230,8 +230,8 @@ function buildHtml(d) {
         '</div>' +
         '<div>' +
           '<div class="hero-label">Your Pulse Score today</div>' +
-          '<div class="hero-title">Good morning, Thomas.</div>' +
-'<div class="hero-row">' +
+        '<div class="hero-title" id="heroGreet">Hello, Thomas.</div>' +
+        '<div class="hero-row">' +
             '<div class="hero-trend">&#x1F4C8; <span>Latest score</span></div>' +
             '<div class="meal-cta">' +
               '<input type="file" accept="image/*" capture="environment" id="mealInput" style="display:none">' +
@@ -285,7 +285,7 @@ function buildHtml(d) {
       '<div class="card col-12"><div class="card-head"><div class="card-title">Sessions this week</div><div class="card-hint" id="weekCount">--</div></div><div class="week-row" id="weekRow"></div></div>' +
     '</div>' +
     '<div class="grid">' +
-'<div class="card col-6 music"><div class="music-head"><div class="cover">&#x1F3B5;</div><div class="music-meta"><div class="mt" id="mTitle">--</div><div class="ma" id="mArtist">--</div><div class="music-tag">&#x25C6; Suggested for today</div></div></div><a class="mlink" id="mLink" href="#" target="_blank" rel="noopener">Listen on YouTube</a><div class="quote"><p class="quote-text" id="qText">--</p><div class="quote-author" id="qAuthor"></div></div></div>' +      
+'<div class="card col-6 music"><div class="music-head"><div class="cover">&#x1F3B5;</div><div class="music-meta"><div class="mt" id="mTitle">--</div><div class="ma" id="mArtist">--</div><div class="music-tag">&#x25C6; Suggested for today</div></div></div><a class="mlink" id="mLink" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg>Listen on YouTube</a><div class="quote"><p class="quote-text" id="qText">--</p><div class="quote-author" id="qAuthor"></div></div></div>' +
 '<div class="card col-6 weather"><div class="weather-top"><div><div class="weather-city">Location</div><div class="weather-desc">--</div></div><div class="sky" id="sky"></div></div><div class="temps"><div class="temp"><div class="tlab">Now</div><div class="tval">--</div></div><div class="temp"><div class="tlab">Feels like</div><div class="tval">--</div></div></div><div class="weather-note">Have a great day, Thomas.</div></div>' +
     '</div>' +
     '<div class="footer-note">Pulse AI Life Coach</div>' +
@@ -311,6 +311,12 @@ export default function Home() {
       });
 
     function initDashboard(pulseScore, allData) {
+      var hg = document.getElementById('heroGreet');
+      if (hg) {
+        var h = new Date().getHours();
+        var g = h < 5 ? 'Good night' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : h < 22 ? 'Good evening' : 'Good night';
+        hg.textContent = g + ', Thomas.';
+      }
       var mealInput = document.getElementById('mealInput');
       var mealBtn = document.getElementById('mealBtn');
       var mealLab = document.getElementById('mealLab');
