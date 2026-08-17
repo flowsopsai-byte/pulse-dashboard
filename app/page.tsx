@@ -693,26 +693,29 @@ if (sl) {
 
       function isoDay(offset) {
         var t = new Date();
-        t.setDate(t.getDate() - offset);
+        var dow = t.getDay();
+        var back = (dow === 0 ? 6 : dow - 1);
+        t.setDate(t.getDate() - back + offset);
         return t.getFullYear() + '-' + String(t.getMonth()+1).padStart(2,'0') + '-' + String(t.getDate()).padStart(2,'0');
-      }
+      }      
 
       function renderWeek() {
         var row = document.getElementById('weekRow');
         if (!row) return;
-        var labs = ['S','M','T','W','T','F','S'];
+        var labs = ['M','T','W','T','F','S','S'];
         var html = '';
         var count = 0;
-        for (var i = 6; i >= 0; i--) {
+        var d = new Date();
+        var todayIso = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        for (var i = 0; i <= 6; i++) {
           var iso = isoDay(i);
-          var dt = new Date(iso + 'T00:00:00');
           var hit = sessData.filter(function(s) { return s.date === iso; });
           var done = hit.length > 0;
           if (done) count++;
           var mus = done ? hit.map(function(s) { return s.muscles || ''; }).join(', ') : '';
           html += '<div class="day-col">' +
-            '<div class="day-lab">' + labs[dt.getDay()] + '</div>' +
-            '<div class="day-box' + (done ? ' done' : '') + (i === 0 ? ' today' : '') + '" data-date="' + iso + '">' +
+            '<div class="day-lab">' + labs[i] + '</div>' +
+            '<div class="day-box' + (done ? ' done' : '') + (iso === todayIso ? ' today' : '') + '" data-date="' + iso + '">' +
               (done ? '&#x2714;' : '&#x2b;') +
             '</div>' +
             '<div class="day-note">' + mus + '</div>' +
@@ -725,7 +728,6 @@ if (sl) {
           b.addEventListener('click', function() { openModal(b.getAttribute('data-date')); });
         });
       }
-
       function openModal(iso) {
         modalDate = iso;
         picked = [];
