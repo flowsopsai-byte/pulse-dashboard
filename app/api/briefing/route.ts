@@ -9,8 +9,7 @@ const supabase = createClient(
 export async function GET() {
   const { data, error } = await supabase
     .from('briefings')
-    .select('audio_url, date, contenu, citation, citation_auteur, musique, musique_url')
-    .order('created_at', { ascending: false })
+    .select('audio_url, date, contenu, citation, citation_auteur, musique, musique_url, events_count, events_summary')    .order('created_at', { ascending: false })
     .limit(1)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

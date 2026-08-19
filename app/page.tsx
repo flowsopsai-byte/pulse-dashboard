@@ -46,7 +46,8 @@ const styleCss = `
   .ring-num b { font-size: 52px; font-weight: 800; letter-spacing: -2px; line-height: 1; }
   .ring-num small { font-size: 13px; opacity: 0.7; letter-spacing: 1px; }
   .hero-label { font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.75; margin-bottom: 6px; }
-  .hero-title { font-size: 27px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 14px; }
+  .hero-title { font-size: 27px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 6px; }
+  .hero-events { display: none; margin-bottom: 14px; font-size: 13px; color: var(--mist); }  
   .hero-trend { display: inline-flex; align-items: center; gap: 7px; font-size: 14px; background: rgba(255,255,255,0.14); padding: 7px 14px; border-radius: 999px; }
   .breakdown { display: flex; gap: 10px; margin-top: 26px; position: relative; z-index: 1; flex-wrap: wrap; }
   .chip { flex: 1; min-width: 128px; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.14); border-radius: 14px; padding: 13px 15px; }
@@ -232,6 +233,7 @@ function buildHtml(d) {
         '<div>' +
           '<div class="hero-label">Your Pulse Score today</div>' +
         '<div class="hero-title" id="heroGreet">Hello, Thomas.</div>' +
+        '<div class="hero-events" id="heroEvents"></div>' +        
         '<div class="hero-row">' +
             '<div class="hero-trend">&#x1F4C8; <span>Latest score</span></div>' +
             '<div class="meal-cta">' +
@@ -521,12 +523,19 @@ var wave = document.getElementById('wave');
       fetch('/api/briefing')
         .then(function(r) { return r.json(); })
         .then(function(bd) {
+          var b0 = bd && bd[0];
+          if (b0) {
+            var he = document.getElementById('heroEvents');
+            if (he && b0.events_count > 0) {
+              he.textContent = '\uD83D\uDCC5 ' + b0.events_count + ' event' + (b0.events_count > 1 ? 's' : '') + ' today';
+              he.style.display = 'block';
+            }
+          }
           if (bd && bd[0] && bd[0].audio_url) {
-            briefAudio = new Audio();
+            briefAudio = new Audio();            
             briefAudio.crossOrigin = 'anonymous';
             briefAudio.preload = 'metadata';
             briefAudio.src = bd[0].audio_url;
-            var b0 = bd[0];
             var mParts = (b0.musique || '').split(' - ');
             var mT = document.getElementById('mTitle');
             var mA = document.getElementById('mArtist');
