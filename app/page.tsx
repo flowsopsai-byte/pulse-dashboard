@@ -82,6 +82,7 @@ const styleCss = `
   .mood.active { border-color: var(--teal); background: var(--teal-soft); transform: translateY(-3px); box-shadow: 0 8px 18px rgba(46,158,158,0.2); }
   .mood-labels { display: flex; justify-content: space-between; margin-top: 10px; }
   .mood-labels span { flex: 1; text-align: center; font-size: 10.5px; color: var(--mist); }
+  .mood-avg { font-size: 12px; color: var(--mist); }
   .mood-cta { width: 100%; margin-top: 18px; padding: 13px; border: none; border-radius: 12px; background: var(--navy); color: white; font-size: 14px; font-weight: 600; cursor: pointer; }
   .macro { margin-bottom: 15px; }
   .macro:last-child { margin-bottom: 0; }
@@ -275,8 +276,8 @@ function buildHtml(d) {
           '<svg class="chart" id="scoreChart" viewBox="0 0 640 190" preserveAspectRatio="none"></svg>' +
         '</div>' +
       '</div>' +
-      '<div class="card col-4"><div class="card-head"><div class="card-title">How you feel right now</div></div><div class="mood-row" id="moodRow"><button class="mood" data-v="1">&#x1F614;</button><button class="mood" data-v="2">&#x1F615;</button><button class="mood" data-v="3">&#x1F610;</button><button class="mood active" data-v="4">&#x1F642;</button><button class="mood" data-v="5">&#x1F604;</button></div><div class="mood-labels"><span>Rough</span><span></span><span>Okay</span><span></span><span>Great</span></div><button class="mood-cta" id="moodBtn">Log my mood</button></div>' +
-    '</div>' +
+      '<div class="card col-4"><div class="card-head"><div class="card-title">How you feel right now</div><div class="mood-avg" id="moodAvg"></div></div><div class="mood-row" id="moodRow"><button class="mood" data-v="1">&#x1F614;</button><button class="mood" data-v="2">&#x1F615;</button><button class="mood" data-v="3">&#x1F610;</button><button class="mood active" data-v="4">&#x1F642;</button><button class="mood" data-v="5">&#x1F604;</button></div><div class="mood-labels"><span>Rough</span><span></span><span>Okay</span><span></span><span>Great</span></div><button class="mood-cta" id="moodBtn">Log my mood</button></div>' +    
+      '</div>' +
     '<div class="grid">' +
       '<div class="card col-8"><div class="card-head"><div class="card-title">Mood, stress &amp; energy</div><div class="card-hint">Last 7 days</div></div>' +
         '<div class="axis-wrap">' + axisLayer([2.5, 5, 7.5, 10], 10) +
@@ -449,12 +450,35 @@ export default function Home() {
       var moodBtn = document.getElementById('moodBtn');
       if (moodBtn) {
         moodBtn.addEventListener('click', function() {
-          moodBtn.textContent = 'Mood logged';
-          moodBtn.style.background = 'var(--teal)';
-          setTimeout(function() { moodBtn.textContent = 'Log my mood'; moodBtn.style.background = 'var(--navy)'; }, 1800);
+          var sel = document.querySelector('.mood.active');
+          if (!sel) return;
+          var v = parseInt(sel.getAttribute('data-v'), 10) * 2;
+
+          moodBtn.textContent = 'Saving...';
+
+          fetch('/api/mood', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ valeur: v })
+          })
+            .then(function(r) { return r.json(); })
+            .then(function() {
+              moodBtn.textContent = 'Mood logged';
+              moodBtn.style.background = 'var(--teal)';
+              setTimeout(function() {
+                moodBtn.textContent = 'Log my mood';
+                moodBtn.style.background = '';
+              }, 2000);
+              return fetch('/api/mood').then(function(r) { return r.json(); });
+            })
+            .then(function(d) {
+              var ma = document.getElementById('moodAvg');
+              if (ma && d && d.count > 0) {
+                ma.textContent = 'Today: ' + d.average.toFixed(1) + '/10 · ' + d.count + ' log' + (d.count > 1 ? 's' : '');
+              }
+            });
         });
       }
-
 var wave = document.getElementById('wave');
       var bars = [];
       if (wave) {
