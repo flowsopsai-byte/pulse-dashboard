@@ -124,6 +124,7 @@ const styleCss = `
   .modal-btns button { flex: 1; padding: 12px; border: none; border-radius: 12px; font-size: 13.5px; font-weight: 600; cursor: pointer; }
   .btn-save { background: var(--navy); color: #fff; }
   .btn-cancel { background: var(--well); color: var(--slate); }
+  .btn-delete { background: transparent; color: #c0392b; border: 1px solid #e8c4bf; margin-right: auto; }
   .brief-hero { border: 1px solid var(--line); background: linear-gradient(120deg, #ffffff, var(--teal-soft) 260%); }
   .brief { display: flex; gap: 15px; align-items: flex-start; }
   .play { width: 60px; height: 60px; border-radius: 14px; flex-shrink: 0; background: linear-gradient(135deg, var(--teal), var(--navy)); border: none; cursor: pointer; display: grid; place-items: center; color: white; font-size: 20px; box-shadow: 0 6px 16px rgba(46,158,158,0.3); }
@@ -289,8 +290,7 @@ function buildHtml(d) {
 '<div class="card col-6 weather"><div class="weather-top"><div><div class="weather-city">Location</div><div class="weather-desc">--</div></div><div class="sky" id="sky"></div></div><div class="temps"><div class="temp"><div class="tlab">Now</div><div class="tval">--</div></div><div class="temp"><div class="tlab">Feels like</div><div class="tval">--</div></div></div><div class="weather-note">Have a great day, Thomas.</div></div>' +
     '</div>' +
     '<div class="footer-note">Pulse AI Life Coach</div>' +
-    '<div class="modal-bg" id="sessModal"><div class="modal"><h3 id="modalDay">Session</h3><div class="msub">Which muscles did you train?</div><div class="mus-row" id="musRow"></div><textarea id="sessNote" placeholder="Optional note"></textarea><div class="modal-btns"><button class="btn-cancel" id="sessCancel">Cancel</button><button class="btn-save" id="sessSave">Save</button></div></div></div>' +
-'</div>';  
+    '<div class="modal-bg" id="sessModal"><div class="modal"><h3 id="modalDay">Session</h3><div class="msub">Which muscles did you train?</div><div class="mus-row" id="musRow"></div><textarea id="sessNote" placeholder="Optional note"></textarea><div class="modal-btns"><button class="btn-delete" id="sessDelete">Delete</button><button class="btn-cancel" id="sessCancel">Cancel</button><button class="btn-save" id="sessSave">Save</button></div></div></div>' +'</div>';  
 }
 
 export default function Home() {
@@ -711,6 +711,7 @@ if (sl) {
       var sessData = [];
       var modalDate = null;
       var picked = [];
+      var editingId = null;
 
       function isoDay(offset) {
         var t = new Date();
@@ -752,9 +753,20 @@ if (sl) {
       function openModal(iso) {
         modalDate = iso;
         picked = [];
+        editingId = null;
+
+        var existing = sessData.filter(function(s) { return s.date === iso; })[0];
+        if (existing) {
+          editingId = existing.id;
+          picked = (existing.muscles || '').split(',').map(function(m) { return m.trim(); }).filter(Boolean);
+        }
+
         var mr = document.getElementById('musRow');
         if (mr) {
-          mr.innerHTML = MUSCLES.map(function(m) { return '<div class="mus" data-m="' + m + '">' + m + '</div>'; }).join('');
+          mr.innerHTML = MUSCLES.map(function(m) {
+            var on = picked.indexOf(m.toLowerCase()) !== -1 || picked.indexOf(m) !== -1;
+            return '<div class="mus' + (on ? ' on' : '') + '" data-m="' + m + '">' + m + '</div>';
+          }).join('');
           mr.querySelectorAll('.mus').forEach(function(el) {
             el.addEventListener('click', function() {
               var m = el.getAttribute('data-m');
@@ -763,10 +775,15 @@ if (sl) {
             });
           });
         }
+
         var md = document.getElementById('modalDay');
         if (md) md.textContent = iso;
         var na = document.getElementById('sessNote');
-        if (na) na.value = '';
+        if (na) na.value = existing ? (existing.description || '') : '';
+
+        var del = document.getElementById('sessDelete');
+        if (del) del.style.display = editingId ? 'block' : 'none';
+
         var bg = document.getElementById('sessModal');
         if (bg) bg.classList.add('open');
       }
@@ -777,20 +794,46 @@ if (sl) {
           document.getElementById('sessModal').classList.remove('open');
         });
       }
+
       var sessSave = document.getElementById('sessSave');
       if (sessSave) {
         sessSave.addEventListener('click', function() {
           if (picked.length === 0) return;
           var note = document.getElementById('sessNote').value;
           sessSave.textContent = 'Saving...';
+
+          var payload = { date: modalDate, muscles: picked.join(', ').toLowerCase(), description: note };
+          if (editingId) payload.id = editingId;
+
           fetch('/api/sessions/submit', {
-            method: 'POST',
+            method: editingId ? 'PATCH' : 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ date: modalDate, muscles: picked.join(', ').toLowerCase(), description: note })
+            body: JSON.stringify(payload)
           })
             .then(function(r) { return r.json(); })
             .then(function() {
               sessSave.textContent = 'Save';
+              document.getElementById('sessModal').classList.remove('open');
+              return fetch('/api/sessions').then(function(r) { return r.json(); });
+            })
+            .then(function(d) { sessData = d || []; renderWeek(); });
+        });
+      }
+
+      var sessDelete = document.getElementById('sessDelete');
+      if (sessDelete) {
+        sessDelete.addEventListener('click', function() {
+          if (!editingId) return;
+          sessDelete.textContent = 'Deleting...';
+
+          fetch('/api/sessions/submit', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: editingId })
+          })
+            .then(function(r) { return r.json(); })
+            .then(function() {
+              sessDelete.textContent = 'Delete';
               document.getElementById('sessModal').classList.remove('open');
               return fetch('/api/sessions').then(function(r) { return r.json(); });
             })
