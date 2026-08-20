@@ -447,7 +447,16 @@ export default function Home() {
           m.classList.add('active');
         });
       });
-      var moodBtn = document.getElementById('moodBtn');
+      fetch('/api/mood')
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          var ma = document.getElementById('moodAvg');
+          if (ma && d && d.count > 0) {
+            ma.textContent = 'Today: ' + d.average.toFixed(1) + '/10 · ' + d.count + ' log' + (d.count > 1 ? 's' : '');
+          }
+        });
+
+      var moodBtn = document.getElementById('moodBtn');      
       if (moodBtn) {
         moodBtn.addEventListener('click', function() {
           var sel = document.querySelector('.mood.active');
