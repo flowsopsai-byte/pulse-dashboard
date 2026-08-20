@@ -33,8 +33,12 @@ const styleCss = `
   .hero::after { content: ""; position: absolute; right: -80px; top: -80px; width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, rgba(46,158,158,0.35), transparent 70%); }
 .hero-grid { display: grid; grid-template-columns: auto 1fr; gap: 40px; }
   .ring-wrap { position: relative; width: 168px; height: 168px; }
-  .hero-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+  .hero-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }  
   .meal-cta { display: flex; align-items: center; gap: 12px; position: relative; z-index: 2; }  .meal-btn:hover { background: rgba(255,255,255,0.22); transform: translateY(-2px); }
+  .hydra-cta { display: flex; align-items: center; gap: 8px; margin-top: 0; position: relative; z-index: 2; }
+  .hydra-btn { background: rgba(255,255,255,0.12); border: none; border-radius: 50%; width: 38px; height: 38px; font-size: 17px; cursor: pointer; transition: all 0.2s; }
+  .hydra-btn:hover { background: rgba(255,255,255,0.22); transform: translateY(-2px); }
+  .hydra-btn.done { background: var(--teal); transform: scale(1.15); }  
   .meal-btn { width: 52px; height: 52px; border-radius: 26px; border: none; background: rgba(255,255,255,0.14); color: #fff; font-size: 22px; cursor: pointer; transition: background .25s, transform .15s; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .meal-btn:hover { background: rgba(255,255,255,0.22); transform: translateY(-2px); }
   .meal-btn.done { background: var(--teal); }
@@ -243,8 +247,13 @@ function buildHtml(d) {
               '<div class="meal-lab" id="mealLab">Log a meal</div>' +
               '<button class="meal-btn" id="mealBtn">&#x1F4F7;</button>' +
             '</div>' +
-'</div>' +
-'<div class="breakdown">' +
+            '<div class="hydra-cta">' +
+              '<button class="hydra-btn" data-b="cafe">&#x2615;</button>' +
+              '<button class="hydra-btn" data-b="verre">&#x1F943;</button>' +
+              '<button class="hydra-btn" data-b="litre">&#x1F4A7;</button>' +
+            '</div>' +
+            '</div>' +
+            '<div class="breakdown">' +
             '<div class="chip"><div class="lab">&#x1F634; Sleep</div><div class="val">' + sleep + ' / 20</div><div class="bar"><i style="width:' + Math.round(sleep/20*100) + '%"></i></div></div>' +            
             '<div class="chip"><div class="lab">&#x1F50B; Recovery</div><div class="val">' + recup + ' / 20</div><div class="bar"><i style="width:' + Math.round(recup/20*100) + '%"></i></div></div>' +
             '<div class="chip"><div class="lab">&#x1F4AA; Activity</div><div class="val">' + activite + ' / 20</div><div class="bar"><i style="width:' + Math.round(activite/20*100) + '%"></i></div></div>' +
@@ -324,6 +333,26 @@ export default function Home() {
       var mealInput = document.getElementById('mealInput');
       var mealBtn = document.getElementById('mealBtn');
       var mealLab = document.getElementById('mealLab');
+      
+      document.querySelectorAll('.hydra-btn').forEach(function(hb) {
+        hb.addEventListener('click', function() {
+          if (hb.classList.contains('busy')) return;
+          hb.classList.add('busy');
+
+          fetch('/api/hydration', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ boisson: hb.getAttribute('data-b') })
+          })
+            .then(function(r) { return r.json(); })
+            .then(function() {
+              hb.classList.remove('busy');
+              hb.classList.add('done');
+              setTimeout(function() { hb.classList.remove('done'); }, 1200);
+            })
+            .catch(function() { hb.classList.remove('busy'); });
+        });
+      });
 
       if (mealBtn && mealInput) {
         mealBtn.onclick = function () {
