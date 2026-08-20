@@ -87,6 +87,13 @@ const styleCss = `
   .mood-labels { display: flex; justify-content: space-between; margin-top: 10px; }
   .mood-labels span { flex: 1; text-align: center; font-size: 10.5px; color: var(--mist); }
   .mood-avg { font-size: 12px; color: var(--mist); }
+  .body-vals { display: flex; gap: 24px; margin: 14px 0 16px; }
+  .body-val { display: flex; align-items: baseline; gap: 5px; }
+  .body-val b { font-size: 26px; font-weight: 800; letter-spacing: -1px; color: var(--navy); }
+  .body-val small { font-size: 11px; color: var(--mist); }
+  .body-form { display: flex; gap: 8px; }
+  .body-form input { flex: 1; min-width: 0; padding: 9px 10px; border: 1px solid var(--line); border-radius: 9px; font-size: 13px; background: var(--well); color: var(--ink); }
+  .body-save { padding: 9px 16px; border: none; border-radius: 9px; background: var(--teal); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
   .mood-cta { width: 100%; margin-top: 18px; padding: 13px; border: none; border-radius: 12px; background: var(--navy); color: white; font-size: 14px; font-weight: 600; cursor: pointer; }
   .macro { margin-bottom: 15px; }
   .macro:last-child { margin-bottom: 0; }
@@ -285,6 +292,17 @@ function buildHtml(d) {
         '</div>' +
       '</div>' +
       '<div class="card col-4"><div class="card-head"><div class="card-title">How you feel right now</div><div class="mood-avg" id="moodAvg"></div></div><div class="mood-row" id="moodRow"><button class="mood" data-v="1">&#x1F614;</button><button class="mood" data-v="2">&#x1F615;</button><button class="mood" data-v="3">&#x1F610;</button><button class="mood active" data-v="4">&#x1F642;</button><button class="mood" data-v="5">&#x1F604;</button></div><div class="mood-labels"><span>Rough</span><span></span><span>Okay</span><span></span><span>Great</span></div><button class="mood-cta" id="moodBtn">Log my mood</button></div>' +    
+            '<div class="card col-4"><div class="card-head"><div class="card-title">Body composition</div></div>' +
+        '<div class="body-vals">' +
+          '<div class="body-val"><b id="bodyWeight">--</b><small>kg</small></div>' +
+          '<div class="body-val"><b id="bodyFat">--</b><small>% fat</small></div>' +
+        '</div>' +
+        '<div class="body-form">' +
+          '<input type="number" step="0.1" id="bodyWeightIn" placeholder="Weight">' +
+          '<input type="number" step="0.1" id="bodyFatIn" placeholder="% fat">' +
+          '<button class="body-save" id="bodySave">Save</button>' +
+        '</div>' +
+      '</div>' +
       '</div>' +
     '<div class="grid">' +
       '<div class="card col-8"><div class="card-head"><div class="card-title">Mood, stress &amp; energy</div><div class="card-hint">Last 7 days</div></div>' +
@@ -483,7 +501,51 @@ export default function Home() {
             ma.textContent = 'Today: ' + d.average.toFixed(1) + '/10 · ' + d.count + ' log' + (d.count > 1 ? 's' : '');
           }
         });
+      fetch('/api/body')
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (!d || !d.length) return;
+          var last = d[0];
+          var bw = document.getElementById('bodyWeight');
+          var bf = document.getElementById('bodyFat');
+          if (bw && last.poids != null) bw.textContent = last.poids;
+          if (bf && last.masse_grasse != null) bf.textContent = last.masse_grasse;
+        });
 
+      var bodySave = document.getElementById('bodySave');
+      if (bodySave) {
+        bodySave.addEventListener('click', function() {
+          var wIn = document.getElementById('bodyWeightIn');
+          var fIn = document.getElementById('bodyFatIn');
+          var payload = {};
+          if (wIn.value !== '') payload.poids = parseFloat(wIn.value);
+          if (fIn.value !== '') payload.masse_grasse = parseFloat(fIn.value);
+          if (!payload.poids && !payload.masse_grasse) return;
+
+          bodySave.textContent = 'Saving...';
+
+          fetch('/api/body', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          })
+            .then(function(r) { return r.json(); })
+            .then(function() {
+              bodySave.textContent = 'Save';
+              wIn.value = '';
+              fIn.value = '';
+              return fetch('/api/body').then(function(r) { return r.json(); });
+            })
+            .then(function(d) {
+              if (!d || !d.length) return;
+              var last = d[0];
+              var bw = document.getElementById('bodyWeight');
+              var bf = document.getElementById('bodyFat');
+              if (bw && last.poids != null) bw.textContent = last.poids;
+              if (bf && last.masse_grasse != null) bf.textContent = last.masse_grasse;
+            });
+        });
+      }
       var moodBtn = document.getElementById('moodBtn');      
       if (moodBtn) {
         moodBtn.addEventListener('click', function() {
