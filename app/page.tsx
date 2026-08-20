@@ -241,17 +241,16 @@ function buildHtml(d) {
         '<div class="hero-title" id="heroGreet">Hello, Thomas.</div>' +
         '<div class="hero-events" id="heroEvents"></div>' +        
         '<div class="hero-row">' +
-            '<div class="hero-trend">&#x1F4C8; <span>Latest score</span></div>' +
+            '<div class="hydra-cta">' +
+              '<button class="hydra-btn" data-b="cafe">&#x2615;</button>' +
+              '<button class="hydra-btn" data-b="verre">&#x1FAD7;</button>' +
+              '<button class="hydra-btn" data-b="litre">&#x1F4A7;</button>' +
+            '</div>' +            
             '<div class="meal-cta">' +
               '<input type="file" accept="image/*" capture="environment" id="mealInput" style="display:none">' +
               '<div class="meal-lab" id="mealLab">Log a meal</div>' +
               '<button class="meal-btn" id="mealBtn">&#x1F4F7;</button>' +
-            '</div>' +
-            '<div class="hydra-cta">' +
-              '<button class="hydra-btn" data-b="cafe">&#x2615;</button>' +
-              '<button class="hydra-btn" data-b="verre">&#x1F943;</button>' +
-              '<button class="hydra-btn" data-b="litre">&#x1F4A7;</button>' +
-            '</div>' +
+            '</div>' +            
             '</div>' +
             '<div class="breakdown">' +
             '<div class="chip"><div class="lab">&#x1F634; Sleep</div><div class="val">' + sleep + ' / 20</div><div class="bar"><i style="width:' + Math.round(sleep/20*100) + '%"></i></div></div>' +            
