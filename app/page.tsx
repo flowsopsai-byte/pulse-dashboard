@@ -87,7 +87,12 @@ const styleCss = `
   .mood-labels { display: flex; justify-content: space-between; margin-top: 10px; }
   .mood-labels span { flex: 1; text-align: center; font-size: 10.5px; color: var(--mist); }
   .mood-avg { font-size: 12px; color: var(--mist); }
-  .body-vals { display: flex; gap: 24px; margin: 14px 0 16px; }
+  .body-vals { display: flex; align-items: baseline; gap: 24px; margin: 14px 0 16px; width: 100%; }
+  .body-trend { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; }
+  .body-trend .arrow { font-size: 17px; line-height: 1; }
+  .body-trend.good { color: #1a8a52; }
+  .body-trend.bad { color: #c0392b; }
+  .body-trend.flat { color: var(--gold); }
   .body-val { display: flex; align-items: baseline; gap: 5px; }
   .body-val b { font-size: 26px; font-weight: 800; letter-spacing: -1px; color: var(--navy); }
   .body-val small { font-size: 11px; color: var(--mist); }
@@ -311,8 +316,9 @@ function buildHtml(d) {
         '<div class="body-vals">' +
           '<div class="body-val"><b id="bodyWeight">--</b><small>kg</small></div>' +
           '<div class="body-val"><b id="bodyFat">--</b><small>% fat</small></div>' +
+          '<div class="body-trend" id="bodyTrend"></div>' +
         '</div>' +
-        '<div class="body-form">' +
+          '<div class="body-form">' +
           '<input type="number" step="0.1" id="bodyWeightIn" placeholder="Weight">' +
           '<input type="number" step="0.1" id="bodyFatIn" placeholder="% fat">' +
           '<button class="body-save" id="bodySave">Save</button>' +
@@ -498,25 +504,6 @@ export default function Home() {
           m.classList.add('active');
         });
       });
-      fetch('/api/mood')
-        .then(function(r) { return r.json(); })
-        .then(function(d) {
-          var ma = document.getElementById('moodAvg');
-          if (ma && d && d.count > 0) {
-            ma.textContent = 'Today: ' + d.average.toFixed(1) + '/10 · ' + d.count + ' log' + (d.count > 1 ? 's' : '');
-          }
-        });
-      fetch('/api/body')
-        .then(function(r) { return r.json(); })
-        .then(function(d) {
-          if (!d || !d.entries || !d.entries.length) return;
-          var last = d.entries[0];
-          var bw = document.getElementById('bodyWeight');
-          var bf = document.getElementById('bodyFat');
-          if (bw && last.poids != null) bw.textContent = last.poids;
-          if (bf && last.masse_grasse != null) bf.textContent = last.masse_grasse;
-        });
-
       var bodySave = document.getElementById('bodySave');
       if (bodySave) {
         bodySave.addEventListener('click', function() {
@@ -541,14 +528,7 @@ export default function Home() {
               fIn.value = '';
               return fetch('/api/body').then(function(r) { return r.json(); });
             })
-            .then(function(d) {
-              if (!d || !d.length) return;
-              var last = d[0];
-              var bw = document.getElementById('bodyWeight');
-              var bf = document.getElementById('bodyFat');
-              if (bw && last.poids != null) bw.textContent = last.poids;
-              if (bf && last.masse_grasse != null) bf.textContent = last.masse_grasse;
-            });
+            .then(function(d) { renderBody(d); });
         });
       }
       var moodBtn = document.getElementById('moodBtn');      
@@ -583,7 +563,62 @@ export default function Home() {
             });
         });
       }
-var wave = document.getElementById('wave');
+      function renderBody(d) {
+        if (!d || !d.entries || !d.entries.length) return;
+        var e = d.entries;
+        var last = e[0];
+        var goals = d.goals || {};
+
+        var bw = document.getElementById('bodyWeight');
+        var bf = document.getElementById('bodyFat');
+        if (bw && last.poids != null) bw.textContent = last.poids;
+        if (bf && last.masse_grasse != null) bf.textContent = last.masse_grasse;
+
+        var tr = document.getElementById('bodyTrend');
+        if (!tr) return;
+
+        var cutoff = new Date(last.date);
+        cutoff.setDate(cutoff.getDate() - 7);
+        var ref = null;
+        for (var i = 1; i < e.length; i++) {
+          if (e[i].poids == null) continue;
+          ref = e[i];
+          if (new Date(e[i].date) <= cutoff) break;
+        }
+
+        if (!ref || last.poids == null) { tr.innerHTML = ''; return; }
+
+        var diff = last.poids - ref.poids;
+        var target = goals.poids_cible != null ? goals.poids_cible : last.poids;
+        var cls, arrow;
+
+        if (Math.abs(diff) < 0.5) {
+          cls = 'flat';
+          arrow = '\u2192';
+        } else {
+          var towards = (target < last.poids && diff < 0) || (target > last.poids && diff > 0);
+          cls = towards ? 'good' : 'bad';
+          arrow = diff < 0 ? '\u2198' : '\u2197';
+        }
+
+        tr.className = 'body-trend ' + cls;
+        tr.innerHTML = '<span class="arrow">' + arrow + '</span><span>' +
+          (diff > 0 ? '+' : '') + diff.toFixed(1) + ' kg / 7d</span>';
+      }
+
+      fetch('/api/body')
+        .then(function(r) { return r.json(); })
+        .then(function(d) { renderBody(d); });
+
+      fetch('/api/mood')
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          var ma = document.getElementById('moodAvg');
+          if (ma && d && d.count > 0) {
+            ma.textContent = 'Today: ' + d.average.toFixed(1) + '/10 · ' + d.count + ' log' + (d.count > 1 ? 's' : '');
+          }
+        });
+      var wave = document.getElementById('wave');
       var bars = [];
       if (wave) {
         for (var i = 0; i < 26; i++) {
