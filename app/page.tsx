@@ -302,10 +302,12 @@ function buildHtml(d) {
       '</div>' +
 '<div class="card col-4"><div class="card-head"><div class="card-title">Nutrition</div><a href="/nutrition" class="card-hint" style="color:var(--teal);text-decoration:none;font-weight:600">Details &#x2192;</a></div><div class="macro"><div class="macro-top"><b>Calories</b><span class="muted" id="nCalTxt">-- / 2750 kcal</span></div><div class="track"><i id="nCalBar" style="width:0%; background:var(--gold)"></i></div></div><div class="macro"><div class="macro-top"><b>Protein</b><span class="muted" id="nProTxt">-- / 195 g</span></div><div class="track"><i id="nProBar" style="width:0%; background:var(--teal)"></i></div></div><div class="macro"><div class="macro-top"><b>Carbs</b><span class="muted" id="nCarTxt">-- / 285 g</span></div><div class="track"><i id="nCarBar" style="width:0%; background:#5bb8d4"></i></div></div><div class="macro"><div class="macro-top"><b>Fat</b><span class="muted" id="nFatTxt">-- / 92 g</span></div><div class="track"><i id="nFatBar" style="width:0%; background:#c47fd4"></i></div></div></div>' +
 '</div>' +    
-'<div class="grid">' +
+    '<div class="grid">' +
       '<div class="card col-12"><div class="card-head"><div class="card-title">Sessions this week</div><div class="card-hint" id="weekCount">--</div></div><div class="week-row" id="weekRow"></div></div>' +
     '</div>' +
-                '<div class="card col-4"><div class="card-head"><div class="card-title">Body composition</div></div>' +
+
+    '<div class="grid">' +
+      '<div class="card col-12"><div class="card-head"><div class="card-title">Body composition</div></div>' +
         '<div class="body-vals">' +
           '<div class="body-val"><b id="bodyWeight">--</b><small>kg</small></div>' +
           '<div class="body-val"><b id="bodyFat">--</b><small>% fat</small></div>' +
@@ -316,9 +318,10 @@ function buildHtml(d) {
           '<button class="body-save" id="bodySave">Save</button>' +
         '</div>' +
       '</div>' +
+    '</div>' +
 
     '<div class="grid">' +
-'<div class="card col-6 music"><div class="music-head"><div class="cover">&#x1F3B5;</div><div class="music-meta"><div class="mt" id="mTitle">--</div><div class="ma" id="mArtist">--</div><div class="music-tag">&#x25C6; Suggested for today</div></div></div><a class="mlink" id="mLink" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg>Listen on YouTube</a><div class="quote"><p class="quote-text" id="qText">--</p><div class="quote-author" id="qAuthor"></div></div></div>' +
+    '<div class="card col-6 music"><div class="music-head"><div class="cover">&#x1F3B5;</div><div class="music-meta"><div class="mt" id="mTitle">--</div><div class="ma" id="mArtist">--</div><div class="music-tag">&#x25C6; Suggested for today</div></div></div><a class="mlink" id="mLink" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg>Listen on YouTube</a><div class="quote"><p class="quote-text" id="qText">--</p><div class="quote-author" id="qAuthor"></div></div></div>' +
 '<div class="card col-6 weather"><div class="weather-top"><div><div class="weather-city">Location</div><div class="weather-desc">--</div></div><div class="sky" id="sky"></div></div><div class="temps"><div class="temp"><div class="tlab">Now</div><div class="tval">--</div></div><div class="temp"><div class="tlab">Feels like</div><div class="tval">--</div></div></div><div class="weather-note">Have a great day, Thomas.</div></div>' +
     '</div>' +
     '<div class="footer-note">Pulse AI Life Coach</div>' +
@@ -506,8 +509,8 @@ export default function Home() {
       fetch('/api/body')
         .then(function(r) { return r.json(); })
         .then(function(d) {
-          if (!d || !d.length) return;
-          var last = d[0];
+          if (!d || !d.entries || !d.entries.length) return;
+          var last = d.entries[0];
           var bw = document.getElementById('bodyWeight');
           var bf = document.getElementById('bodyFat');
           if (bw && last.poids != null) bw.textContent = last.poids;

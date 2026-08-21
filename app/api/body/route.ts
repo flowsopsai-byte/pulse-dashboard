@@ -16,12 +16,21 @@ export async function GET() {
     .select('date, poids, masse_grasse')
     .eq('user_id', 1)
     .order('date', { ascending: false })
-    .limit(30)
+    .limit(90)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(data)
-}
 
+  const { data: goals } = await supabase
+    .from('body_goals')
+    .select('poids_cible, masse_grasse_cible')
+    .eq('id', 1)
+    .limit(1)
+
+  return NextResponse.json({
+    entries: data,
+    goals: goals && goals.length ? goals[0] : null
+  })
+}
 export async function POST(req: Request) {
   const body = await req.json()
 
