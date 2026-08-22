@@ -10,6 +10,9 @@ export default function BodyPage() {
   const [goals, setGoals] = useState<Goals | null>(null);
   const [range, setRange] = useState(90);
   const [loading, setLoading] = useState(true);
+  const [analysis, setAnalysis] = useState<any>(null);
+  const [analysing, setAnalysing] = useState(false);
+  const [aErr, setAErr] = useState('');
 
   function load() {
     fetch('/api/body')
@@ -22,8 +25,47 @@ export default function BodyPage() {
       .catch(() => setLoading(false));
   }
 
-  useEffect(() => { load(); }, []);
+  function loadAnalysis() {
+    fetch('/api/body/analysis')
+      .then(r => r.json())
+      .then(d => setAnalysis(d))
+      .catch(() => {});
+  }
 
+  useEffect(() => { load(); loadAnalysis(); }, []);
+
+  function onPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setAnalysing(true);
+    setAErr('');
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const b64 = String(reader.result).split(',')[1];
+      fetch('/api/body/analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: b64 })
+      })
+        .then(r => r.json())
+        .then(d => {
+          if (d.error) setAErr('Analysis failed. Try another photo.');
+          else loadAnalysis();
+          setAnalysing(false);
+        })
+        .catch(() => {
+          setAErr('Network error.');
+          setAnalysing(false);
+        });
+    };
+    reader.onerror = () => {
+      setAErr('Could not read the file.');
+      setAnalysing(false);
+    };
+    reader.readAsDataURL(file);
+  }
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - range);
   const shown = entries
@@ -107,6 +149,44 @@ export default function BodyPage() {
                   </li>
                 ))}
               </ul>
+            )}
+          </section>
+                    <section className="card">
+            <div className="card-head">
+              <div className="card-title">Physique analysis</div>
+              <label className="ghost-btn photo-btn">
+                {analysing ? 'Analysing...' : 'New photo'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={analysing}
+                  onChange={onPhoto}
+                />
+              </label>
+            </div>
+
+            {aErr && <div className="goal-err">{aErr}</div>}
+
+            {analysing ? (
+              <div className="empty">Reading your photo — this takes a few seconds.</div>
+            ) : !analysis ? (
+              <div className="empty">No analysis yet. Take a front-facing photo in good light.</div>
+            ) : (
+              <div className="analysis">
+                <div className="a-date">
+                  {analysis.date || analysis.created_at
+                    ? String(analysis.date || analysis.created_at).slice(0, 10)
+                    : ''}
+                </div>
+
+                {analysis.commentaire && (
+                  <p className="a-comment">{analysis.commentaire}</p>
+                )}
+
+                <AField label="Strengths" value={analysis.points_forts} tone="good" />
+                <AField label="Weak points" value={analysis.points_faibles} tone="warn" />
+                <AField label="Priorities" value={analysis.priorites} tone="prio" />
+              </div>
             )}
           </section>
         </>
@@ -236,6 +316,25 @@ function GoalsEditor({ goals, onSaved }: { goals: Goals | null; onSaved: () => v
         </div>
       )}
     </section>
+  );
+}
+
+function AField({ label, value, tone }: { label: string; value: unknown; tone: string }) {
+  const items = Array.isArray(value)
+    ? value.map(v => String(v)).filter(Boolean)
+    : typeof value === 'string' && value.trim() !== ''
+      ? value.split(/\r?\n|(?:^|\s)[-•]\s+/).map(v => v.trim()).filter(Boolean)
+      : [];
+
+  if (items.length === 0) return null;
+
+  return (
+    <div className={'a-field a-' + tone}>
+      <span className="a-label">{label}</span>
+      <ul>
+        {items.map((it, i) => <li key={i}>{it}</li>)}
+      </ul>
+    </div>
   );
 }
 
@@ -419,6 +518,18 @@ const css = `
   .body-page .hd { flex: 1; color: #5a6a82; }
   .body-page .hv { font-weight: 600; min-width: 62px; text-align: right; }
   .body-page .hv.muted { color: #8a97ab; font-weight: 500; }
+    .body-page .photo-btn { position: relative; overflow: hidden; display: inline-block; }
+  .body-page .photo-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .body-page .analysis { display: flex; flex-direction: column; gap: 16px; }
+  .body-page .a-date { font-size: 11.5px; font-weight: 600; color: #8a97ab; text-transform: uppercase; letter-spacing: 0.4px; }
+  .body-page .a-comment { font-size: 13.5px; line-height: 1.55; color: #1a2233; }
+  .body-page .a-field { border-left: 3px solid #e6ebf2; padding-left: 12px; }
+  .body-page .a-field.a-good { border-left-color: #2E9E9E; }
+  .body-page .a-field.a-warn { border-left-color: #D4A843; }
+  .body-page .a-field.a-prio { border-left-color: #1B3A6B; }
+  .body-page .a-label { display: block; font-size: 11.5px; font-weight: 700; color: #5a6a82; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 5px; }
+  .body-page .a-field ul { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+  .body-page .a-field li { font-size: 13px; line-height: 1.5; color: #1a2233; }
   .body-page .empty { padding: 22px 0; text-align: center; color: #8a97ab; font-size: 13px; }
   body { background: #dde8f4; }
 `;
