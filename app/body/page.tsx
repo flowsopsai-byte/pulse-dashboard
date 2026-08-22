@@ -378,11 +378,11 @@ const css = `
   .body-page .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
   .body-page .card-title { font-size: 15px; font-weight: 700; }
   .body-page .now { display: flex; gap: 28px; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; }
-  .body-page .now-left { display: flex; gap: 36px; }
+  .body-page .now-left { display: flex; gap: 14px; flex: 1; min-width: 260px; }
+  .body-page .now-val { flex: 1; min-width: 130px; display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap; background: #fff; border-radius: 12px; padding: 14px 16px; }
   .body-page .insights { display: flex; flex-direction: column; gap: 7px; text-align: left; font-size: 12.5px; color: #5a6a82; line-height: 1.45; flex: 1; min-width: 210px; padding-left: 22px; border-left: 3px solid #e4f2f2; }
   .body-page .insights span:first-child { font-weight: 700; color: #1B3A6B; font-size: 14px; }
   .body-page .insights .muted { color: #8a97ab; }
-  .body-page .now-val { display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap; }
   .body-page .now-val b { font-size: 32px; font-weight: 800; letter-spacing: -1px; color: #1B3A6B; }
   .body-page .now-val small { font-size: 12px; color: #8a97ab; }
   .body-page .togo { width: 100%; font-size: 11.5px; color: #2E9E9E; font-weight: 600; }
