@@ -312,7 +312,7 @@ function buildHtml(d) {
     '</div>' +
 
     '<div class="grid">' +
-      '<div class="card col-12"><div class="card-head"><div class="card-title">Body composition</div></div>' +
+      '<div class="card col-12"><div class="card-head"><div class="card-title">Body composition</div><a href="/body" class="card-hint" style="color:var(--teal);text-decoration:none;font-weight:600">Details &#x2192;</a></div>' +
         '<div class="body-vals">' +
           '<div class="body-val"><b id="bodyWeight">--</b><small>kg</small></div>' +
           '<div class="body-val"><b id="bodyFat">--</b><small>% fat</small></div>' +
