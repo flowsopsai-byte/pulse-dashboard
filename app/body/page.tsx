@@ -89,8 +89,9 @@ export default function BodyPage() {
             <div className="legend">
               <span><i style={{ background: '#1B3A6B' }} />Weight</span>
               <span><i style={{ background: '#D4A843' }} />% fat</span>
+              <span><i className="dash" />Target</span>
             </div>
-          </section>
+            </section>
 
           <section className="card">
             <div className="card-head"><div className="card-title">History</div></div>
@@ -333,6 +334,10 @@ function Chart({ entries, goals }: { entries: Entry[]; goals: Goals | null }) {
   const wGoalY = goals?.poids_cible != null
     ? H - pad - (goals.poids_cible - wMin) / (wMax - wMin || 1) * (H - 2 * pad)
     : null;
+    
+  const fGoalY = goals?.masse_grasse_cible != null
+    ? H - pad - (goals.masse_grasse_cible - fMin) / (fMax - fMin || 1) * (H - 2 * pad)
+    : null;
 
   return (
     <div className="chart-wrap">
@@ -344,7 +349,11 @@ function Chart({ entries, goals }: { entries: Entry[]; goals: Goals | null }) {
       <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="chart">
         {wGoalY != null && (
           <line x1={pad} y1={wGoalY} x2={W - pad} y2={wGoalY}
-            stroke="#1B3A6B" strokeWidth="1.5" strokeDasharray="5 5" opacity="0.35" />
+            stroke="#1B3A6B" strokeWidth="1.5" strokeDasharray="5 5" opacity="0.55" />
+        )}
+        {fGoalY != null && (
+          <line x1={pad} y1={fGoalY} x2={W - pad} y2={fGoalY}
+            stroke="#D4A843" strokeWidth="1.5" strokeDasharray="5 5" opacity="0.55" />
         )}
         <path d={path(wPts)} fill="none" stroke="#1B3A6B" strokeWidth="2.5" strokeLinecap="round" />
         <path d={path(fPts)} fill="none" stroke="#D4A843" strokeWidth="2.5" strokeLinecap="round" />
@@ -368,9 +377,10 @@ const css = `
   .body-page .card { background: #f3f7fc; border-radius: 16px; padding: 20px; margin-bottom: 18px; }
   .body-page .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
   .body-page .card-title { font-size: 15px; font-weight: 700; }
-  .body-page .now { display: flex; gap: 36px; justify-content: space-between; flex-wrap: wrap; }
+  .body-page .now { display: flex; gap: 28px; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; }
   .body-page .now-left { display: flex; gap: 36px; }
-  .body-page .insights { display: flex; flex-direction: column; gap: 5px; text-align: right; font-size: 12px; color: #5a6a82; line-height: 1.45; }
+  .body-page .insights { display: flex; flex-direction: column; gap: 7px; text-align: left; font-size: 12.5px; color: #5a6a82; line-height: 1.45; flex: 1; min-width: 210px; padding-left: 22px; border-left: 3px solid #e4f2f2; }
+  .body-page .insights span:first-child { font-weight: 700; color: #1B3A6B; font-size: 14px; }
   .body-page .insights .muted { color: #8a97ab; }
   .body-page .now-val { display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap; }
   .body-page .now-val b { font-size: 32px; font-weight: 800; letter-spacing: -1px; color: #1B3A6B; }
@@ -379,9 +389,9 @@ const css = `
   .body-page .ranges { display: flex; gap: 6px; }
   .body-page .ranges button { padding: 5px 11px; border: 1px solid #e6ebf2; background: #e3ebf5; border-radius: 8px; font-size: 12px; font-weight: 600; color: #5a6a82; cursor: pointer; }
   .body-page .ranges button.on { background: #2E9E9E; border-color: #2E9E9E; color: #fff; }
-  .body-page .goals-read { display: flex; gap: 40px; flex-wrap: wrap; }
-  .body-page .goal-item { display: flex; flex-direction: column; gap: 3px; }
-  .body-page .goal-label { font-size: 11.5px; font-weight: 600; color: #8a97ab; text-transform: uppercase; letter-spacing: 0.4px; }
+  .body-page .goals-read { display: flex; gap: 14px; flex-wrap: wrap; }
+  .body-page .goal-item { flex: 1; min-width: 140px; display: flex; flex-direction: column; gap: 3px; background: #e4f2f2; border-radius: 12px; padding: 14px 16px; }
+  .body-page .goal-label { font-size: 11.5px; font-weight: 600; color: #2E9E9E; text-transform: uppercase; letter-spacing: 0.4px; }
   .body-page .goal-value { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: #1B3A6B; }
   .body-page .goal-value small { font-size: 11.5px; font-weight: 600; color: #8a97ab; margin-left: 4px; }
   .body-page .goals-edit { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-end; }
@@ -402,6 +412,7 @@ const css = `
   .body-page .chart { width: 100%; height: 200px; }
   .body-page .legend { display: flex; gap: 16px; margin-top: 12px; font-size: 12px; color: #5a6a82; }
   .body-page .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+  .body-page .legend i.dash { width: 14px; height: 0; border-radius: 0; border-top: 2px dashed #8a97ab; vertical-align: middle; }
   .body-page .hist { list-style: none; }
   .body-page .hist li { display: flex; align-items: center; gap: 14px; padding: 9px 0; border-bottom: 1px solid #e6ebf2; font-size: 13px; }
   .body-page .hist li:last-child { border-bottom: none; }
