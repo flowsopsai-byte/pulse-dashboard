@@ -3,6 +3,7 @@
   "short_name": "Pulse",
   "description": "Your daily biometric briefing and AI coach",
   "start_url": "/",
+  "id": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#dde8f4",
