@@ -43,7 +43,7 @@ const styleCss = `
   .meal-btn:hover { background: rgba(255,255,255,0.22); transform: translateY(-2px); }
   .meal-btn.done { background: var(--teal); }
   .meal-btn.busy { cursor: default; }
-  .meal-lab { font-size: 12px; color: rgba(255,255,255,0.7); text-align: center; max-width: 110px; line-height: 1.35; }
+  .meal-lab { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.92); text-align: center; max-width: 130px; line-height: 1.35; }
   .meal-spin { width: 22px; height: 22px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: mspin .8s linear infinite; }
   @keyframes mspin { to { transform: rotate(360deg) } }
   .ring-num { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
