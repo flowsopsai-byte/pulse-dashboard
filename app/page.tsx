@@ -70,6 +70,8 @@ const styleCss = `
   .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
   .card-title { font-size: 15px; font-weight: 700; color: var(--ink); letter-spacing: -0.2px; }
   .card-hint { font-size: 12px; color: var(--mist); }
+  .card-go { display: inline-flex; align-items: center; gap: 5px; padding: 7px 13px; min-height: 34px; background: var(--teal-soft); color: var(--teal); border-radius: 999px; font-size: 12.5px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+  .card-go:active { background: var(--teal); color: #fff; }
   .chart { width: 100%; height: 190px; }
   .axis-wrap { position: relative; padding: 0 30px; }
   .axis-wrap .chart { display: block; width: 100%; position: relative; z-index: 1; }
@@ -305,15 +307,15 @@ function buildHtml(d) {
         '</div>' +
         '<div class="legend"><span><i class="dot" style="background:#2E9E9E"></i>Mood</span><span><i class="dot" style="background:#D4A843"></i>Stress</span><span><i class="dot" style="background:#1B3A6B"></i>Energy</span></div>' +
       '</div>' +
-'<div class="card col-4"><div class="card-head"><div class="card-title">Nutrition</div><a href="/nutrition" class="card-hint" style="color:var(--teal);text-decoration:none;font-weight:600">Details &#x2192;</a></div><div class="macro"><div class="macro-top"><b>Calories</b><span class="muted" id="nCalTxt">-- / 2750 kcal</span></div><div class="track"><i id="nCalBar" style="width:0%; background:var(--gold)"></i></div></div><div class="macro"><div class="macro-top"><b>Protein</b><span class="muted" id="nProTxt">-- / 195 g</span></div><div class="track"><i id="nProBar" style="width:0%; background:var(--teal)"></i></div></div><div class="macro"><div class="macro-top"><b>Carbs</b><span class="muted" id="nCarTxt">-- / 285 g</span></div><div class="track"><i id="nCarBar" style="width:0%; background:#5bb8d4"></i></div></div><div class="macro"><div class="macro-top"><b>Fat</b><span class="muted" id="nFatTxt">-- / 92 g</span></div><div class="track"><i id="nFatBar" style="width:0%; background:#c47fd4"></i></div></div></div>' +
+'<div class="card col-4"><div class="card-head"><div class="card-title">Nutrition</div><a href="/nutrition" class="card-go">Details &#x2192;</a></div><div class="macro"><div class="macro-top"><b>Calories</b><span class="muted" id="nCalTxt">-- / 2750 kcal</span></div><div class="track"><i id="nCalBar" style="width:0%; background:var(--gold)"></i></div></div><div class="macro"><div class="macro-top"><b>Protein</b><span class="muted" id="nProTxt">-- / 195 g</span></div><div class="track"><i id="nProBar" style="width:0%; background:var(--teal)"></i></div></div><div class="macro"><div class="macro-top"><b>Carbs</b><span class="muted" id="nCarTxt">-- / 285 g</span></div><div class="track"><i id="nCarBar" style="width:0%; background:#5bb8d4"></i></div></div><div class="macro"><div class="macro-top"><b>Fat</b><span class="muted" id="nFatTxt">-- / 92 g</span></div><div class="track"><i id="nFatBar" style="width:0%; background:#c47fd4"></i></div></div></div>' +
 '</div>' +    
     '<div class="grid">' +
       '<div class="card col-12"><div class="card-head"><div class="card-title">Sessions this week</div><div class="card-hint" id="weekCount">--</div></div><div class="week-row" id="weekRow"></div></div>' +
     '</div>' +
 
     '<div class="grid">' +
-      '<div class="card col-12"><div class="card-head"><div class="card-title">Body composition</div><a href="/body" class="card-hint" style="color:var(--teal);text-decoration:none;font-weight:600">Details &#x2192;</a></div>' +
-        '<div class="body-vals">' +
+      '<div class="card col-12"><div class="card-head"><div class="card-title">Body composition</div><a href="/body" class="card-go">Details &#x2192;</a></div>' +
+          '<div class="body-vals">' +
           '<div class="body-val"><b id="bodyWeight">--</b><small>kg</small></div>' +
           '<div class="body-val"><b id="bodyFat">--</b><small>% fat</small></div>' +
           '<div class="body-trend" id="bodyTrend"></div>' +
