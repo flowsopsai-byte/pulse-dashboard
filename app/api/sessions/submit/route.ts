@@ -9,11 +9,22 @@ const supabase = createClient(
 export async function POST(req: Request) {
   const body = await req.json()
 
+  const description = typeof body.description === 'string' ? body.description.trim() : ''
+  const muscles = Array.isArray(body.muscles) ? body.muscles : []
+
+  if (!body.date) {
+    return NextResponse.json({ error: 'date required' }, { status: 400 })
+  }
+
+  if (description === '' && muscles.length === 0) {
+    return NextResponse.json({ error: 'a session needs muscles or a description' }, { status: 400 })
+  }
+
   const { error } = await supabase.from('seances').insert({
     user_id: 1,
     date: body.date,
-    muscles: body.muscles,
-    description: body.description || '',
+    muscles,
+    description,
     duree: 0
   })
 
@@ -28,12 +39,19 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: 'id required' }, { status: 400 })
   }
 
+  const description = typeof body.description === 'string' ? body.description.trim() : ''
+  const muscles = Array.isArray(body.muscles) ? body.muscles : []
+
+  if (description === '' && muscles.length === 0) {
+    return NextResponse.json({ error: 'a session needs muscles or a description' }, { status: 400 })
+  }
+
   const { error } = await supabase
     .from('seances')
     .update({
       date: body.date,
-      muscles: body.muscles,
-      description: body.description || ''
+      muscles,
+      description
     })
     .eq('id', body.id)
     .eq('user_id', 1)
