@@ -6,19 +6,19 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-export async function GET() {
-  const { data: last } = await supabase
-    .from('nutrition')
-    .select('date')
-    .order('date', { ascending: false })
-    .limit(1)
+function bangkokDay(offsetDays = 0): string {
+  const t = new Date(Date.now() + 7 * 3600 * 1000)
+  t.setUTCDate(t.getUTCDate() + offsetDays)
+  return t.toISOString().slice(0, 10)
+}
 
-  const day = last && last[0] ? last[0].date : null
-  if (!day) return NextResponse.json({ calories: 0, proteines: 0, glucides: 0, lipides: 0, date: null })
+export async function GET() {
+  const day = bangkokDay(-1)
 
   const { data, error } = await supabase
     .from('nutrition')
     .select('calories, proteines, glucides, lipides')
+    .eq('user_id', 1)
     .eq('date', day)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
