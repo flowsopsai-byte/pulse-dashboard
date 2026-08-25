@@ -31,14 +31,17 @@ const styleCss = `
   .date-badge { font-size: 13px; color: var(--slate); font-weight: 500; background: var(--card); padding: 9px 16px; border-radius: 999px; border: 1px solid var(--line); }
   .hero { background: linear-gradient(140deg, var(--navy-deep), var(--navy) 55%, #234a86); border-radius: 24px; padding: 34px; color: white; position: relative; overflow: hidden; box-shadow: 0 16px 40px rgba(27,58,107,0.28); }
   .hero::after { content: ""; position: absolute; right: -80px; top: -80px; width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, rgba(46,158,158,0.35), transparent 70%); }
-.hero-grid { display: grid; grid-template-columns: auto 1fr; gap: 40px; }
+  .hero-grid { display: grid; grid-template-columns: auto 1fr; gap: 40px; }
   .ring-wrap { position: relative; width: 168px; height: 168px; }
   .hero-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }  
   .meal-cta { display: flex; align-items: center; gap: 12px; position: relative; z-index: 2; }  .meal-btn:hover { background: rgba(255,255,255,0.22); transform: translateY(-2px); }
   .hydra-cta { display: flex; align-items: center; gap: 8px; margin-top: 0; position: relative; z-index: 2; }
   .hydra-btn { background: rgba(255,255,255,0.12); border: none; border-radius: 50%; width: 38px; height: 38px; font-size: 17px; cursor: pointer; transition: all 0.2s; }
   .hydra-btn:hover { background: rgba(255,255,255,0.22); transform: translateY(-2px); }
-  .hydra-btn.done { background: var(--teal); transform: scale(1.15); }  
+  .hydra-btn.done { background: var(--teal); transform: scale(1.15); }
+    .hydra-btn svg { display: block; margin: 0 auto; color: rgba(255,255,255,0.9); }
+  .hydra-gauge { display: flex; align-items: center; gap: 8px; margin-left: 6px; }
+  .hydra-txt { font-size: 11.5px; font-weight: 700; color: rgba(255,255,255,0.85); white-space: nowrap; }  
   .meal-btn { width: 52px; height: 52px; border-radius: 26px; border: none; background: rgba(255,255,255,0.14); color: #fff; font-size: 22px; cursor: pointer; transition: background .25s, transform .15s; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .meal-btn:hover { background: rgba(255,255,255,0.22); transform: translateY(-2px); }
   .meal-btn.done { background: var(--teal); }
@@ -253,11 +256,21 @@ function buildHtml(d) {
         '<div class="hero-events" id="heroEvents"></div>' +        
         '<div class="hero-row">' +
             '<div class="hydra-cta">' +
-              '<button class="hydra-btn" data-b="cafe">&#x2615;</button>' +
-              '<button class="hydra-btn" data-b="verre">&#x1FAD7;</button>' +
-              '<button class="hydra-btn" data-b="litre">&#x1F4A7;</button>' +
-            '</div>' +            
-            '<div class="meal-cta">' +
+              '<button class="hydra-btn" data-b="cafe" title="Coffee 150 ml">&#x2615;</button>' +
+              '<button class="hydra-btn" data-b="bouteille" title="Bottle 500 ml">' +
+                '<svg viewBox="0 0 14 24" width="15" height="24"><rect x="5" y="0" width="4" height="3" rx="1" fill="currentColor"/><path d="M5 3 L5 5 Q2 7 2 11 L2 21 Q2 23 4 23 L10 23 Q12 23 12 21 L12 11 Q12 7 9 5 L9 3 Z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>' +
+              '</button>' +
+              '<div class="hydra-gauge">' +
+                '<svg viewBox="0 0 28 46" width="26" height="44">' +
+                  '<defs><clipPath id="bclip"><path d="M10 6 L10 9 Q4 13 4 20 L4 40 Q4 44 8 44 L20 44 Q24 44 24 40 L24 20 Q24 13 18 9 L18 6 Z"/></clipPath></defs>' +
+                  '<rect x="10" y="0" width="8" height="6" rx="2" fill="rgba(255,255,255,0.45)"/>' +
+                  '<rect id="hydraFill" x="0" y="44" width="28" height="0" fill="rgba(255,255,255,0.75)" clip-path="url(#bclip)"/>' +
+                  '<path d="M10 6 L10 9 Q4 13 4 20 L4 40 Q4 44 8 44 L20 44 Q24 44 24 40 L24 20 Q24 13 18 9 L18 6 Z" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.8"/>' +
+                '</svg>' +
+                '<div class="hydra-txt" id="hydraTxt">-- / --</div>' +
+              '</div>' +
+            '</div>' +
+              '<div class="meal-cta">' +
               '<input type="file" accept="image/*" capture="environment" id="mealInput" style="display:none">' +
               '<div class="meal-lab" id="mealLab">Log a meal</div>' +
               '<button class="meal-btn" id="mealBtn">&#x1F4F7;</button>' +
@@ -356,6 +369,26 @@ export default function Home() {
       var mealBtn = document.getElementById('mealBtn');
       var mealLab = document.getElementById('mealLab');
       
+            function loadHydration() {
+        fetch('/api/hydration')
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            var goal = d.goal || 3000;
+            if (window.__feels && window.__feels >= 35) goal += 500;
+            var pct = Math.min((d.total || 0) / goal, 1);
+            var fill = document.getElementById('hydraFill');
+            if (fill) {
+              var h = Math.round(38 * pct);
+              fill.setAttribute('y', String(44 - h));
+              fill.setAttribute('height', String(h));
+            }
+            var txt = document.getElementById('hydraTxt');
+            if (txt) txt.textContent = (d.total || 0) + ' / ' + goal + ' ml';
+          })
+          .catch(function() {});
+      }
+      loadHydration();
+      
       document.querySelectorAll('.hydra-btn').forEach(function(hb) {
         hb.addEventListener('click', function() {
           if (hb.classList.contains('busy')) return;
@@ -371,6 +404,7 @@ export default function Home() {
               hb.classList.remove('busy');
               hb.classList.add('done');
               setTimeout(function() { hb.classList.remove('done'); }, 1200);
+              setTimeout(loadHydration, 600);
             })
             .catch(function() { hb.classList.remove('busy'); });
         });
@@ -809,6 +843,8 @@ export default function Home() {
           if (tv[0]) tv[0].textContent = w.temp + '\u00B0';
           if (tv[1]) tv[1].textContent = w.feels + '\u00B0';
           if (nt && w.feels >= 35) nt.textContent = 'High heat index. Increase your hydration today.';
+          window.__feels = w.feels;
+          loadHydration();
           drawSky(w.icon);
         });
 
