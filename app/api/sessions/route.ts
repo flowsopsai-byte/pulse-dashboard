@@ -6,14 +6,18 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-export async function GET() {
-  const since = new Date()
-  since.setDate(since.getDate() - 7)
+function bangkokDay(offsetDays = 0): string {
+  const t = new Date(Date.now() + 7 * 3600 * 1000)
+  t.setUTCDate(t.getUTCDate() + offsetDays)
+  return t.toISOString().slice(0, 10)
+}
 
+export async function GET() {
   const { data, error } = await supabase
     .from('seances')
     .select('*')
-    .gte('date', since.toISOString().slice(0, 10))
+    .eq('user_id', 1)
+    .gte('date', bangkokDay(-7))
     .order('date', { ascending: true })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
