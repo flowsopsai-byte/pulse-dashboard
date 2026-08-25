@@ -185,6 +185,8 @@ export default function NutritionPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -196,11 +198,33 @@ export default function NutritionPage() {
       })
       .catch(() => setLoading(false));
   }, [date]);
+  function reload() {
+    fetch(`/api/nutrition/day?date=${date}`)
+      .then((r) => r.json())
+      .then((d) => setData(d))
+      .catch(() => {});
+  }
 
-  const t = data?.totals;
-  const meals: Meal[] = data?.meals || [];
+  async function removeMeal(id: string) {
+    setDeleting(id);
+    try {
+      const r = await fetch('/api/nutrition/meal', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      if (r.ok) {
+        setOpen(null);
+        setConfirmId(null);
+        reload();
+      }
+    } catch {}
+    setDeleting(null);
+  }
+    const t = data?.totals;
+    const meals: Meal[] = data?.meals || [];
 
-  const cardStyle = {
+    const cardStyle = {
     background: CARD,
     borderRadius: 18,
     padding: 22,
@@ -388,6 +412,43 @@ export default function NutritionPage() {
                           </div>
                         </div>
                       ))}
+                    </div>
+
+                    <div style={{ marginTop: 18, display: 'flex', justifyContent: 'flex-end' }}>
+                      {confirmId === m.id ? (
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                          <span style={{ fontSize: 13, color: SLATE }}>Delete this meal?</span>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); removeMeal(m.id); }}
+                            disabled={deleting === m.id}
+                            style={{
+                              padding: '8px 16px', minHeight: 38, border: 'none', borderRadius: 999,
+                              background: '#c0392b', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer'
+                            }}
+                          >
+                            {deleting === m.id ? 'Deleting...' : 'Delete'}
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setConfirmId(null); }}
+                            style={{
+                              padding: '8px 16px', minHeight: 38, border: `1px solid ${LINE}`, borderRadius: 999,
+                              background: WELL, color: SLATE, fontSize: 13, fontWeight: 600, cursor: 'pointer'
+                            }}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setConfirmId(m.id); }}
+                          style={{
+                            padding: '8px 16px', minHeight: 38, border: `1px solid ${LINE}`, borderRadius: 999,
+                            background: WELL, color: '#c0392b', fontSize: 13, fontWeight: 600, cursor: 'pointer'
+                          }}
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
