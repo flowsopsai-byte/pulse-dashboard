@@ -6,17 +6,23 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+function normalizeMuscles(raw: unknown): string {
+  if (Array.isArray(raw)) return raw.map(m => String(m).trim()).filter(Boolean).join(', ')
+  if (typeof raw === 'string') return raw.trim()
+  return ''
+}
+
 export async function POST(req: Request) {
   const body = await req.json()
 
   const description = typeof body.description === 'string' ? body.description.trim() : ''
-  const muscles = Array.isArray(body.muscles) ? body.muscles : []
+  const muscles = normalizeMuscles(body.muscles)
 
   if (!body.date) {
     return NextResponse.json({ error: 'date required' }, { status: 400 })
   }
 
-  if (description === '' && muscles.length === 0) {
+  if (description === '' && muscles === '') {
     return NextResponse.json({ error: 'a session needs muscles or a description' }, { status: 400 })
   }
 
@@ -40,9 +46,9 @@ export async function PATCH(req: Request) {
   }
 
   const description = typeof body.description === 'string' ? body.description.trim() : ''
-  const muscles = Array.isArray(body.muscles) ? body.muscles : []
+  const muscles = normalizeMuscles(body.muscles)
 
-  if (description === '' && muscles.length === 0) {
+  if (description === '' && muscles === '') {
     return NextResponse.json({ error: 'a session needs muscles or a description' }, { status: 400 })
   }
 
