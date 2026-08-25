@@ -210,7 +210,7 @@ function Summary({
               className="edit-pen"
               aria-label="Edit targets"
               onClick={() => setPanel(panel === 'goals' ? 'none' : 'goals')}
-            >&#9998;</button>
+            >edit</button>
             {goals?.poids_cible != null && last?.poids != null && (
               <span className="togo">
                 &middot; {(last.poids - goals.poids_cible).toFixed(1)} to go
@@ -227,7 +227,7 @@ function Summary({
               className="edit-pen"
               aria-label="Edit targets"
               onClick={() => setPanel(panel === 'goals' ? 'none' : 'goals')}
-            >&#9998;</button>
+            >edit</button>
             {goals?.masse_grasse_cible != null && last?.masse_grasse != null && (
               <span className="togo">
                 &middot; {(last.masse_grasse - goals.masse_grasse_cible).toFixed(1)} to go
@@ -594,13 +594,13 @@ const css = `
   .body-page .head-actions { display: flex; align-items: center; gap: 10px; }
   .body-page .logged-tag { font-size: 11.5px; font-weight: 600; color: #2E9E9E; background: #e4f2f2; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
   .body-page .vals { display: flex; gap: 14px; flex-wrap: wrap; }
-  .body-page .val { flex: 1; min-width: 150px; background: #fff; border-radius: 12px; padding: 14px 16px; }
-  .body-page .val-main { display: flex; align-items: baseline; gap: 5px; }
+  .body-page .val { flex: 1; min-width: 150px; background: #fff; border-radius: 12px; padding: 18px 16px; text-align: center; }
+  .body-page .val-main { display: flex; align-items: baseline; justify-content: center; gap: 5px; }
   .body-page .val-main b { font-size: 32px; font-weight: 800; letter-spacing: -1px; color: #1B3A6B; }
   .body-page .val-main small { font-size: 12px; color: #8a97ab; }
-  .body-page .val-sub { display: flex; align-items: center; gap: 5px; margin-top: 5px; font-size: 11.5px; font-weight: 600; color: #8a97ab; flex-wrap: wrap; }
+  .body-page .val-sub { display: flex; align-items: center; justify-content: center; gap: 5px; margin-top: 8px; font-size: 12.5px; font-weight: 700; color: #5a6a82; flex-wrap: wrap; }
   .body-page .val-sub .togo { color: #2E9E9E; }
-  .body-page .edit-pen { border: none; background: none; padding: 2px 4px; font-size: 12px; color: #8a97ab; cursor: pointer; line-height: 1; }
+  .body-page .edit-pen { border: none; background: none; padding: 2px 6px; font-size: 10.5px; font-weight: 700; color: #2E9E9E; cursor: pointer; line-height: 1; text-transform: uppercase; letter-spacing: 0.3px; }
   .body-page .edit-pen:active { color: #2E9E9E; }
   .body-page .panel { margin-top: 16px; padding: 16px; background: #fff; border-radius: 12px; }
   .body-page .panel-label { font-size: 11.5px; font-weight: 700; color: #5a6a82; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 10px; }
