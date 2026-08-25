@@ -66,6 +66,7 @@ export default function BodyPage() {
     };
     reader.readAsDataURL(file);
   }
+
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - range);
   const shown = entries
@@ -88,31 +89,7 @@ export default function BodyPage() {
         <div className="empty">Loading...</div>
       ) : (
         <>
-                    <section className="card">
-            <div className="now">
-              <div className="now-left">
-                <div className="now-val">
-                  <b>{last?.poids ?? '--'}</b><small>kg</small>
-                  {goals?.poids_cible != null && last?.poids != null && (
-                    <span className="togo">
-                      {(last.poids - goals.poids_cible).toFixed(1)} kg to go
-                    </span>
-                  )}
-                </div>
-                <div className="now-val">
-                  <b>{last?.masse_grasse ?? '--'}</b><small>% fat</small>
-                  {goals?.masse_grasse_cible != null && last?.masse_grasse != null && (
-                    <span className="togo">
-                      {(last.masse_grasse - goals.masse_grasse_cible).toFixed(1)} pts to go
-                    </span>
-                  )}
-                </div>
-              </div>
-              <Insights entries={entries} goals={goals} />
-            </div>
-          </section>
-
-          <GoalsEditor goals={goals} onSaved={load} />
+          <Summary last={last} goals={goals} entries={entries} onSaved={load} />
 
           <section className="card">
             <div className="card-head">
@@ -133,7 +110,7 @@ export default function BodyPage() {
               <span><i style={{ background: '#D4A843' }} />% fat</span>
               <span><i className="dash" />Target</span>
             </div>
-            </section>
+          </section>
 
           <section className="card">
             <div className="card-head"><div className="card-title">History</div></div>
@@ -151,7 +128,8 @@ export default function BodyPage() {
               </ul>
             )}
           </section>
-                    <section className="card">
+
+          <section className="card">
             <div className="card-head">
               <div className="card-title">Physique analysis</div>
               <label className="ghost-btn photo-btn">
@@ -195,24 +173,179 @@ export default function BodyPage() {
   );
 }
 
-function GoalsEditor({ goals, onSaved }: { goals: Goals | null; onSaved: () => void }) {
-  const [editing, setEditing] = useState(false);
+function Summary({
+  last, goals, entries, onSaved
+}: {
+  last: Entry | undefined;
+  goals: Goals | null;
+  entries: Entry[];
+  onSaved: () => void;
+}) {
+  const [panel, setPanel] = useState<'none' | 'log' | 'goals'>('none');
+
+  const today = new Date().toLocaleDateString('en-CA');
+  const loggedToday = last?.date === today;
+
+  return (
+    <section className="card summary">
+      <div className="card-head">
+        <div className="card-title">Current</div>
+        <div className="head-actions">
+          {loggedToday && <span className="logged-tag">Logged today</span>}
+          <button
+            className={panel === 'log' ? 'primary-btn on' : 'primary-btn'}
+            onClick={() => setPanel(panel === 'log' ? 'none' : 'log')}
+          >
+            {panel === 'log' ? 'Close' : 'Log'}
+          </button>
+        </div>
+      </div>
+
+      <div className="vals">
+        <div className="val">
+          <div className="val-main"><b>{last?.poids ?? '--'}</b><small>kg</small></div>
+          <div className="val-sub">
+            <span>target {goals?.poids_cible ?? '--'}</span>
+            <button
+              className="edit-pen"
+              aria-label="Edit targets"
+              onClick={() => setPanel(panel === 'goals' ? 'none' : 'goals')}
+            >&#9998;</button>
+            {goals?.poids_cible != null && last?.poids != null && (
+              <span className="togo">
+                &middot; {(last.poids - goals.poids_cible).toFixed(1)} to go
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="val">
+          <div className="val-main"><b>{last?.masse_grasse ?? '--'}</b><small>% fat</small></div>
+          <div className="val-sub">
+            <span>target {goals?.masse_grasse_cible ?? '--'}</span>
+            <button
+              className="edit-pen"
+              aria-label="Edit targets"
+              onClick={() => setPanel(panel === 'goals' ? 'none' : 'goals')}
+            >&#9998;</button>
+            {goals?.masse_grasse_cible != null && last?.masse_grasse != null && (
+              <span className="togo">
+                &middot; {(last.masse_grasse - goals.masse_grasse_cible).toFixed(1)} to go
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {panel === 'log' && (
+        <LogPanel last={last} onDone={() => { setPanel('none'); onSaved(); }} />
+      )}
+
+      {panel === 'goals' && (
+        <GoalsPanel goals={goals} onDone={() => { setPanel('none'); onSaved(); }} />
+      )}
+
+      <Insights entries={entries} goals={goals} />
+    </section>
+  );
+}
+
+function LogPanel({ last, onDone }: { last: Entry | undefined; onDone: () => void }) {
   const [poids, setPoids] = useState('');
   const [mg, setMg] = useState('');
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState('');
 
-  function open() {
-    setPoids(goals?.poids_cible != null ? String(goals.poids_cible) : '');
-    setMg(goals?.masse_grasse_cible != null ? String(goals.masse_grasse_cible) : '');
+  async function save() {
     setErr('');
-    setEditing(true);
+
+    const payload: Record<string, number> = {};
+
+    if (poids.trim() !== '') {
+      const v = Number(poids);
+      if (!Number.isFinite(v)) { setErr('Weight is not a number'); return; }
+      if (v < 30 || v > 250) { setErr('Weight must be between 30 and 250 kg'); return; }
+      payload.poids = v;
+    }
+
+    if (mg.trim() !== '') {
+      const v = Number(mg);
+      if (!Number.isFinite(v)) { setErr('Body fat is not a number'); return; }
+      if (v < 3 || v > 60) { setErr('Body fat must be between 3 and 60 %'); return; }
+      payload.masse_grasse = v;
+    }
+
+    if (Object.keys(payload).length === 0) {
+      setErr('Enter a weight or a body fat value');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const r = await fetch('/api/body', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setErr(d.error || 'Save failed');
+        setSaving(false);
+        return;
+      }
+      setSaving(false);
+      onDone();
+    } catch {
+      setSaving(false);
+      setErr('Network error');
+    }
   }
 
-  function cancel() {
-    setErr('');
-    setEditing(false);
-  }
+  return (
+    <div className="panel">
+      <div className="panel-row">
+        <div className="panel-field">
+          <label htmlFor="log-weight">Weight (kg)</label>
+          <input
+            id="log-weight"
+            type="number"
+            inputMode="decimal"
+            step="0.1"
+            min="30"
+            max="250"
+            placeholder={last?.poids != null ? String(last.poids) : '--'}
+            value={poids}
+            onChange={e => setPoids(e.target.value)}
+          />
+        </div>
+        <div className="panel-field">
+          <label htmlFor="log-fat">Body fat (%)</label>
+          <input
+            id="log-fat"
+            type="number"
+            inputMode="decimal"
+            step="0.1"
+            min="3"
+            max="60"
+            placeholder={last?.masse_grasse != null ? String(last.masse_grasse) : '--'}
+            value={mg}
+            onChange={e => setMg(e.target.value)}
+          />
+        </div>
+        <button className="primary-btn tall" onClick={save} disabled={saving}>
+          {saving ? 'Saving...' : 'Save'}
+        </button>
+      </div>
+      {err && <div className="goal-err">{err}</div>}
+    </div>
+  );
+}
+
+function GoalsPanel({ goals, onDone }: { goals: Goals | null; onDone: () => void }) {
+  const [poids, setPoids] = useState(goals?.poids_cible != null ? String(goals.poids_cible) : '');
+  const [mg, setMg] = useState(goals?.masse_grasse_cible != null ? String(goals.masse_grasse_cible) : '');
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState('');
 
   async function save() {
     setErr('');
@@ -252,8 +385,7 @@ function GoalsEditor({ goals, onSaved }: { goals: Goals | null; onSaved: () => v
         return;
       }
       setSaving(false);
-      setEditing(false);
-      onSaved();
+      onDone();
     } catch {
       setSaving(false);
       setErr('Network error');
@@ -261,61 +393,41 @@ function GoalsEditor({ goals, onSaved }: { goals: Goals | null; onSaved: () => v
   }
 
   return (
-    <section className="card">
-      <div className="card-head">
-        <div className="card-title">Targets</div>
-        {!editing && (
-          <button className="ghost-btn" onClick={open}>Edit</button>
-        )}
+    <div className="panel">
+      <div className="panel-label">Targets</div>
+      <div className="panel-row">
+        <div className="panel-field">
+          <label htmlFor="goal-weight">Weight target (kg)</label>
+          <input
+            id="goal-weight"
+            type="number"
+            inputMode="decimal"
+            step="0.1"
+            min="30"
+            max="250"
+            value={poids}
+            onChange={e => setPoids(e.target.value)}
+          />
+        </div>
+        <div className="panel-field">
+          <label htmlFor="goal-fat">Body fat target (%)</label>
+          <input
+            id="goal-fat"
+            type="number"
+            inputMode="decimal"
+            step="0.1"
+            min="3"
+            max="60"
+            value={mg}
+            onChange={e => setMg(e.target.value)}
+          />
+        </div>
+        <button className="primary-btn tall" onClick={save} disabled={saving}>
+          {saving ? 'Saving...' : 'Save'}
+        </button>
       </div>
-
-      {!editing ? (
-        <div className="goals-read">
-          <div className="goal-item">
-            <span className="goal-label">Weight</span>
-            <span className="goal-value">{goals?.poids_cible ?? '--'}<small>kg</small></span>
-          </div>
-          <div className="goal-item">
-            <span className="goal-label">Body fat</span>
-            <span className="goal-value">{goals?.masse_grasse_cible ?? '--'}<small>%</small></span>
-          </div>
-        </div>
-      ) : (
-        <div className="goals-edit">
-          <div className="goal-field">
-            <label htmlFor="goal-weight">Weight target (kg)</label>
-            <input
-              id="goal-weight"
-              type="number"
-              step="0.1"
-              min="30"
-              max="250"
-              value={poids}
-              onChange={e => setPoids(e.target.value)}
-            />
-          </div>
-          <div className="goal-field">
-            <label htmlFor="goal-fat">Body fat target (%)</label>
-            <input
-              id="goal-fat"
-              type="number"
-              step="0.1"
-              min="3"
-              max="60"
-              value={mg}
-              onChange={e => setMg(e.target.value)}
-            />
-          </div>
-          <div className="goal-actions">
-            <button className="primary-btn" onClick={save} disabled={saving}>
-              {saving ? 'Saving...' : 'Save'}
-            </button>
-            <button className="ghost-btn" onClick={cancel} disabled={saving}>Cancel</button>
-          </div>
-          {err && <div className="goal-err">{err}</div>}
-        </div>
-      )}
-    </section>
+      {err && <div className="goal-err">{err}</div>}
+    </div>
   );
 }
 
@@ -340,7 +452,9 @@ function AField({ label, value, tone }: { label: string; value: unknown; tone: s
 
 function Insights({ entries, goals }: { entries: Entry[]; goals: Goals | null }) {
   const withW = entries.filter(e => e.poids != null);
-  if (withW.length < 2) return <div className="insights"><span className="muted">Log a few more entries to see trends.</span></div>;
+  if (withW.length < 2) {
+    return <div className="insights"><span className="muted">Log a few more entries to see trends.</span></div>;
+  }
 
   const last = withW[0];
   const cutoff = new Date(last.date);
@@ -397,6 +511,7 @@ function Insights({ entries, goals }: { entries: Entry[]; goals: Goals | null })
     </div>
   );
 }
+
 function Chart({ entries, goals }: { entries: Entry[]; goals: Goals | null }) {
   if (entries.length < 2) {
     return <div className="empty">Not enough data to draw a trend.</div>;
@@ -433,7 +548,7 @@ function Chart({ entries, goals }: { entries: Entry[]; goals: Goals | null }) {
   const wGoalY = goals?.poids_cible != null
     ? H - pad - (goals.poids_cible - wMin) / (wMax - wMin || 1) * (H - 2 * pad)
     : null;
-    
+
   const fGoalY = goals?.masse_grasse_cible != null
     ? H - pad - (goals.masse_grasse_cible - fMin) / (fMax - fMin || 1) * (H - 2 * pad)
     : null;
@@ -474,40 +589,43 @@ const css = `
   .body-page .back { display: inline-block; margin-bottom: 12px; color: #2E9E9E; text-decoration: none; font-size: 13px; font-weight: 600; }
   .body-page h1 { font-size: 25px; font-weight: 700; letter-spacing: -0.5px; }
   .body-page .card { background: #f3f7fc; border-radius: 16px; padding: 20px; margin-bottom: 18px; }
-  .body-page .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .body-page .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
   .body-page .card-title { font-size: 15px; font-weight: 700; }
-  .body-page .now { display: flex; gap: 28px; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; }
-  .body-page .now-left { display: flex; gap: 14px; flex: 1; min-width: 260px; }
-  .body-page .now-val { flex: 1; min-width: 130px; display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap; background: #fff; border-radius: 12px; padding: 14px 16px; }
-  .body-page .insights { display: flex; flex-direction: column; gap: 7px; text-align: left; font-size: 12.5px; color: #5a6a82; line-height: 1.45; flex: 1; min-width: 210px; padding-left: 22px; border-left: 3px solid #e4f2f2; }
+  .body-page .head-actions { display: flex; align-items: center; gap: 10px; }
+  .body-page .logged-tag { font-size: 11.5px; font-weight: 600; color: #2E9E9E; background: #e4f2f2; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+  .body-page .vals { display: flex; gap: 14px; flex-wrap: wrap; }
+  .body-page .val { flex: 1; min-width: 150px; background: #fff; border-radius: 12px; padding: 14px 16px; }
+  .body-page .val-main { display: flex; align-items: baseline; gap: 5px; }
+  .body-page .val-main b { font-size: 32px; font-weight: 800; letter-spacing: -1px; color: #1B3A6B; }
+  .body-page .val-main small { font-size: 12px; color: #8a97ab; }
+  .body-page .val-sub { display: flex; align-items: center; gap: 5px; margin-top: 5px; font-size: 11.5px; font-weight: 600; color: #8a97ab; flex-wrap: wrap; }
+  .body-page .val-sub .togo { color: #2E9E9E; }
+  .body-page .edit-pen { border: none; background: none; padding: 2px 4px; font-size: 12px; color: #8a97ab; cursor: pointer; line-height: 1; }
+  .body-page .edit-pen:active { color: #2E9E9E; }
+  .body-page .panel { margin-top: 16px; padding: 16px; background: #fff; border-radius: 12px; }
+  .body-page .panel-label { font-size: 11.5px; font-weight: 700; color: #5a6a82; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 10px; }
+  .body-page .panel-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+  .body-page .panel-field { flex: 1; min-width: 130px; display: flex; flex-direction: column; gap: 5px; }
+  .body-page .panel-field label { font-size: 11.5px; font-weight: 600; color: #5a6a82; }
+  .body-page .panel-field input { width: 100%; padding: 11px 12px; min-height: 44px; border: 1px solid #e6ebf2; border-radius: 10px; background: #fff; font-size: 16px; font-weight: 600; color: #1a2233; }
+  .body-page .panel-field input:focus { outline: none; border-color: #2E9E9E; }
+  .body-page .insights { display: flex; flex-direction: column; gap: 7px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #e6ebf2; font-size: 12.5px; color: #5a6a82; line-height: 1.45; }
   .body-page .insights span:first-child { font-weight: 700; color: #1B3A6B; font-size: 14px; }
   .body-page .insights .muted { color: #8a97ab; }
-  .body-page .now-val b { font-size: 32px; font-weight: 800; letter-spacing: -1px; color: #1B3A6B; }
-  .body-page .now-val small { font-size: 12px; color: #8a97ab; }
-  .body-page .togo { width: 100%; font-size: 11.5px; color: #2E9E9E; font-weight: 600; }
   .body-page .ranges { display: flex; gap: 6px; }
   .body-page .ranges button { padding: 5px 11px; border: 1px solid #e6ebf2; background: #e3ebf5; border-radius: 8px; font-size: 12px; font-weight: 600; color: #5a6a82; cursor: pointer; }
   .body-page .ranges button.on { background: #2E9E9E; border-color: #2E9E9E; color: #fff; }
-  .body-page .goals-read { display: flex; gap: 14px; flex-wrap: wrap; }
-  .body-page .goal-item { flex: 1; min-width: 140px; display: flex; flex-direction: column; gap: 3px; background: #e4f2f2; border-radius: 12px; padding: 14px 16px; }
-  .body-page .goal-label { font-size: 11.5px; font-weight: 600; color: #2E9E9E; text-transform: uppercase; letter-spacing: 0.4px; }
-  .body-page .goal-value { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: #1B3A6B; }
-  .body-page .goal-value small { font-size: 11.5px; font-weight: 600; color: #8a97ab; margin-left: 4px; }
-  .body-page .goals-edit { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-end; }
-  .body-page .goal-field { display: flex; flex-direction: column; gap: 5px; }
-  .body-page .goal-field label { font-size: 11.5px; font-weight: 600; color: #5a6a82; }
-  .body-page .goal-field input { width: 150px; padding: 8px 10px; border: 1px solid #e6ebf2; border-radius: 8px; background: #fff; font-size: 14px; font-weight: 600; color: #1a2233; }
-  .body-page .goal-field input:focus { outline: none; border-color: #2E9E9E; }
-  .body-page .goal-actions { display: flex; gap: 8px; }
-  .body-page .primary-btn { padding: 8px 16px; border: 1px solid #2E9E9E; background: #2E9E9E; color: #fff; border-radius: 8px; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+  .body-page .primary-btn { padding: 9px 20px; min-height: 38px; border: 1px solid #2E9E9E; background: #2E9E9E; color: #fff; border-radius: 999px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .body-page .primary-btn.on { background: #1B3A6B; border-color: #1B3A6B; }
+  .body-page .primary-btn.tall { min-height: 44px; border-radius: 10px; }
   .body-page .primary-btn:disabled { opacity: 0.55; cursor: default; }
-  .body-page .ghost-btn { padding: 6px 14px; border: 1px solid #e6ebf2; background: #e3ebf5; color: #5a6a82; border-radius: 8px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+  .body-page .ghost-btn { padding: 7px 14px; min-height: 34px; border: 1px solid #e6ebf2; background: #e3ebf5; color: #5a6a82; border-radius: 999px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
   .body-page .ghost-btn:disabled { opacity: 0.55; cursor: default; }
-  .body-page .goal-err { width: 100%; font-size: 12px; font-weight: 600; color: #c0392b; }
+  .body-page .goal-err { width: 100%; margin-top: 10px; font-size: 12px; font-weight: 600; color: #c0392b; }
   .body-page .chart-wrap { display: flex; gap: 10px; }
   .body-page .ax { display: flex; flex-direction: column; justify-content: space-between; font-size: 10.5px; font-weight: 600; height: 200px; }
   .body-page .ax-w { color: #1B3A6B; }
-  .body-page .ax-f { color: #D4A843; text-align: right; }  
+  .body-page .ax-f { color: #D4A843; text-align: right; }
   .body-page .chart { width: 100%; height: 200px; }
   .body-page .legend { display: flex; gap: 16px; margin-top: 12px; font-size: 12px; color: #5a6a82; }
   .body-page .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
@@ -518,7 +636,7 @@ const css = `
   .body-page .hd { flex: 1; color: #5a6a82; }
   .body-page .hv { font-weight: 600; min-width: 62px; text-align: right; }
   .body-page .hv.muted { color: #8a97ab; font-weight: 500; }
-    .body-page .photo-btn { position: relative; overflow: hidden; display: inline-block; }
+  .body-page .photo-btn { position: relative; overflow: hidden; display: inline-block; }
   .body-page .photo-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
   .body-page .analysis { display: flex; flex-direction: column; gap: 16px; }
   .body-page .a-date { font-size: 11.5px; font-weight: 600; color: #8a97ab; text-transform: uppercase; letter-spacing: 0.4px; }

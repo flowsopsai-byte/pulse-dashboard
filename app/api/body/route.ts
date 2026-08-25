@@ -72,13 +72,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true })
   }
 
+  const { data: prev } = await supabase
+    .from('body_composition')
+    .select('poids, masse_grasse')
+    .eq('user_id', 1)
+    .order('date', { ascending: false })
+    .limit(1)
+
+  const carry = prev && prev.length ? prev[0] : { poids: null, masse_grasse: null }
+
   const { error } = await supabase.from('body_composition').insert({
     user_id: 1,
     date: today,
-    poids,
-    masse_grasse: mg
+    poids: poids !== null ? poids : carry.poids,
+    masse_grasse: mg !== null ? mg : carry.masse_grasse
   })
-
+  
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
 }
