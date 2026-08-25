@@ -98,9 +98,6 @@ const styleCss = `
   .body-val { display: flex; align-items: baseline; gap: 5px; }
   .body-val b { font-size: 26px; font-weight: 800; letter-spacing: -1px; color: var(--navy); }
   .body-val small { font-size: 11px; color: var(--mist); }
-  .body-form { display: flex; gap: 8px; }
-  .body-form input { flex: 1; min-width: 0; padding: 9px 10px; border: 1px solid var(--line); border-radius: 9px; font-size: 13px; background: var(--well); color: var(--ink); }
-  .body-save { padding: 9px 16px; border: none; border-radius: 9px; background: var(--teal); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
   .mood-cta { width: 100%; margin-top: 18px; padding: 13px; border: none; border-radius: 12px; background: var(--navy); color: white; font-size: 14px; font-weight: 600; cursor: pointer; }
   .macro { margin-bottom: 15px; }
   .macro:last-child { margin-bottom: 0; }
@@ -320,11 +317,6 @@ function buildHtml(d) {
           '<div class="body-val"><b id="bodyFat">--</b><small>% fat</small></div>' +
           '<div class="body-trend" id="bodyTrend"></div>' +
         '</div>' +
-          '<div class="body-form">' +
-          '<input type="number" step="0.1" id="bodyWeightIn" placeholder="Weight">' +
-          '<input type="number" step="0.1" id="bodyFatIn" placeholder="% fat">' +
-          '<button class="body-save" id="bodySave">Save</button>' +
-        '</div>' +
       '</div>' +
     '</div>' +
 
@@ -506,33 +498,6 @@ export default function Home() {
           m.classList.add('active');
         });
       });
-      var bodySave = document.getElementById('bodySave');
-      if (bodySave) {
-        bodySave.addEventListener('click', function() {
-          var wIn = document.getElementById('bodyWeightIn');
-          var fIn = document.getElementById('bodyFatIn');
-          var payload = {};
-          if (wIn.value !== '') payload.poids = parseFloat(wIn.value);
-          if (fIn.value !== '') payload.masse_grasse = parseFloat(fIn.value);
-          if (!payload.poids && !payload.masse_grasse) return;
-
-          bodySave.textContent = 'Saving...';
-
-          fetch('/api/body', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          })
-            .then(function(r) { return r.json(); })
-            .then(function() {
-              bodySave.textContent = 'Save';
-              wIn.value = '';
-              fIn.value = '';
-              return fetch('/api/body').then(function(r) { return r.json(); });
-            })
-            .then(function(d) { renderBody(d); });
-        });
-      }
       var moodBtn = document.getElementById('moodBtn');      
       if (moodBtn) {
         moodBtn.addEventListener('click', function() {
