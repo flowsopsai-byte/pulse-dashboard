@@ -150,6 +150,11 @@ const styleCss = `
   .play { width: 60px; height: 60px; border-radius: 14px; flex-shrink: 0; background: linear-gradient(135deg, var(--teal), var(--navy)); border: none; cursor: pointer; display: grid; place-items: center; color: white; font-size: 20px; box-shadow: 0 6px 16px rgba(46,158,158,0.3); }
   .brief-body p { font-size: 14px; color: var(--slate); max-width: 640px; }
   .brief-body .t { font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 3px; }
+    .brief-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .brief-act { padding: 7px 14px; min-height: 34px; border: 1px solid var(--line); background: var(--well); color: var(--teal); border-radius: 999px; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+  .brief-act:active { background: var(--teal); color: #fff; }
+  .brief-text { display: none; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 13.5px; line-height: 1.65; color: var(--ink); max-width: 640px; white-space: pre-wrap; }
+  .brief-text.open { display: block; }
   .wave { display: flex; align-items: center; gap: 3px; margin-top: 10px; height: 22px; }
   .wave i { width: 3px; background: var(--teal); border-radius: 2px; opacity: 0.55; }
   .wave i { transition: height .09s linear; }
@@ -287,7 +292,12 @@ function buildHtml(d) {
           '<div class="brief-body">' +
             '<div class="t">Your morning briefing</div>' +
             '<p>Your coach has analyzed your night, your mood and your week.</p>' +
-                '<div class="wave" id="wave"></div>' +
+            '<div class="brief-actions">' +
+              '<button class="brief-act" id="readBtn">Read</button>' +
+              '<button class="brief-act" id="shareBtn">Share</button>' +
+            '</div>' +
+            '<div class="brief-text" id="briefText"></div>' +                
+            '<div class="wave" id="wave"></div>' +
                 '<div class="pbar-row">' +
                   '<div class="pbar" id="pbar"><div class="pbar-fill" id="pbarFill"></div><div class="pbar-knob" id="pbarKnob"></div></div>' +
                   '<div class="pbar-dur" id="pbarDur">--:--</div>' +
@@ -705,6 +715,35 @@ export default function Home() {
               he.innerHTML = '<a href="https://calendar.google.com/calendar/r/day" target="_blank" rel="noopener">\uD83D\uDCC5 ' + b0.events_count + ' event' + (b0.events_count > 1 ? 's' : '') + ' today</a>';              
               he.style.display = 'block';
             }
+          }
+                    if (b0 && b0.contenu) {
+            var bt = document.getElementById('briefText');
+            if (bt) bt.textContent = b0.contenu;
+            var rb = document.getElementById('readBtn');
+            if (rb && bt) {
+              rb.addEventListener('click', function() {
+                var open = bt.classList.toggle('open');
+                rb.textContent = open ? 'Hide' : 'Read';
+              });
+            }
+          }
+
+          var sb = document.getElementById('shareBtn');
+          if (sb && b0) {
+            sb.addEventListener('click', function() {
+              var url = b0.audio_url || '';
+              var title = 'Pulse briefing ' + (b0.date || '');
+              if (navigator.share) {
+                navigator.share({ title: title, text: title, url: url }).catch(function() {});
+              } else if (url) {
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = 'pulse-briefing.mp3';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+              }
+            });
           }
           if (bd && bd[0] && bd[0].audio_url) {
             briefAudio = new Audio();            
