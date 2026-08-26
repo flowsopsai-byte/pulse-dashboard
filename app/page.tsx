@@ -716,11 +716,12 @@ export default function Home() {
               he.style.display = 'block';
             }
           }
-                    if (b0 && b0.contenu) {
+          if (b0 && b0.contenu) {
             var bt = document.getElementById('briefText');
             if (bt) bt.textContent = b0.contenu;
             var rb = document.getElementById('readBtn');
-            if (rb && bt) {
+            if (rb && bt && !rb.dataset.bound) {
+              rb.dataset.bound = '1';
               rb.addEventListener('click', function() {
                 var open = bt.classList.toggle('open');
                 rb.textContent = open ? 'Hide' : 'Read';
@@ -729,7 +730,8 @@ export default function Home() {
           }
 
           var sb = document.getElementById('shareBtn');
-          if (sb && b0) {
+          if (sb && b0 && !sb.dataset.bound) {
+            sb.dataset.bound = '1';            
             sb.addEventListener('click', function() {
               var url = b0.audio_url || '';
               var title = 'Pulse briefing ' + (b0.date || '');
