@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const NAVY = '#1B3A6B';
 const TEAL = '#2E9E9E';
@@ -25,12 +25,16 @@ type Answers = {
   declencheur: string;
   pensee_recurrente: string;
   point_positif: string;
+  cbt_applique: string;
+  cbt_utilite: number | null;
+  note_libre: string;
 };
 
 const EMPTY: Answers = {
   humeur: null, stress: null, energie: null, productivite: null,
   emotion_dominante: '', reaction_disproportionnee: '',
   raconte: '', declencheur: '', pensee_recurrente: '', point_positif: '',
+  cbt_applique: '', cbt_utilite: null, note_libre: '',
 };
 
 export default function CheckinPage() {
@@ -39,10 +43,18 @@ export default function CheckinPage() {
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
   const [err, setErr] = useState('');
+  const [lever, setLever] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch('/api/briefing')
+      .then(r => r.json())
+      .then(d => setLever((Array.isArray(d) ? d[0]?.cbt_lever : d?.cbt_lever) || null))
+      .catch(() => {});
+  }, []);
 
   const showReaction = a.reaction_disproportionnee === 'Yes';
 
-  const steps: { key: keyof Answers; n: string; title: string; sub: string; type: 'scale' | 'choice' | 'text'; options?: string[]; required: boolean }[] = [
+  const steps: { key: keyof Answers; n: string; title: string; sub: string; type: 'scale' | 'choice' | 'text' | 'cbt'; options?: string[]; required: boolean }[] = [
     { key: 'humeur', n: '1', title: 'Overall mood', sub: 'Looking back on your day, how do you feel?', type: 'scale', required: true },
     { key: 'stress', n: '2', title: 'Stress level', sub: 'How pressured or tense did you feel today?', type: 'scale', required: true },
     { key: 'energie', n: '3', title: 'Energy level', sub: 'How was your physical and mental vitality today?', type: 'scale', required: true },
@@ -53,13 +65,24 @@ export default function CheckinPage() {
     { key: 'declencheur', n: '6b', title: 'The trigger', sub: 'What set off that reaction?', type: 'text', required: false },
     { key: 'pensee_recurrente', n: '7', title: 'Recurring thought', sub: 'Any thought or worry looping in your head right now?', type: 'text', required: false },
     { key: 'point_positif', n: '8', title: 'Positive note', sub: 'What felt good today?', type: 'text', required: true },
+    { key: 'cbt_applique', n: '9', title: "This morning's technique", sub: lever || 'Your coach suggested a technique this morning.', type: 'cbt', options: ['Yes', 'No'], required: false },
+    { key: 'note_libre', n: '10', title: 'Anything to remember', sub: 'Something you want your coach to keep in mind going forward. Optional.', type: 'text', required: false },
   ];
 
-  const visible = steps.filter((s) => (s.key === 'raconte' || s.key === 'declencheur' ? showReaction : true));
+  const visible = steps.filter((s) => {
+    if (s.key === 'raconte' || s.key === 'declencheur') return showReaction;
+    if (s.key === 'cbt_applique') return !!lever;
+    return true;
+  });
+
   const cur = visible[step];
   const total = visible.length;
   const val = a[cur.key];
-  const filled = cur.type === 'scale' ? val !== null : String(val).trim() !== '';
+  const filled = cur.type === 'scale'
+    ? val !== null
+    : cur.type === 'cbt'
+      ? a.cbt_applique !== ''
+      : String(val).trim() !== '';
   const canNext = filled || !cur.required;
   const isLast = step === total - 1;
 
@@ -164,6 +187,39 @@ export default function CheckinPage() {
                   </button>
                 );
               })}
+            </div>
+          )}
+
+          {cur.type === 'cbt' && (
+            <div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 9, marginBottom: 22 }}>
+                {['Yes', 'No'].map((o) => {
+                  const on = a.cbt_applique === o;
+                  return (
+                    <button key={o} onClick={() => set('cbt_applique', o)}
+                      style={{ padding: '12px 20px', borderRadius: 22, border: on ? 'none' : `1px solid ${LINE}`, background: on ? `linear-gradient(145deg, ${TEAL}, ${NAVY})` : CARD, color: on ? '#fff' : INK, fontSize: 14.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                      {o === 'Yes' ? 'I tried it' : 'I did not'}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {a.cbt_applique === 'Yes' && (
+                <div>
+                  <div style={{ fontSize: 13.5, color: SLATE, marginBottom: 12 }}>How useful was it?</div>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    {[1, 2, 3, 4, 5].map((n) => {
+                      const on = a.cbt_utilite === n;
+                      return (
+                        <button key={n} onClick={() => set('cbt_utilite', n)}
+                          style={{ width: 56, height: 56, borderRadius: 14, border: on ? 'none' : `1px solid ${LINE}`, background: on ? `linear-gradient(145deg, ${TEAL}, ${NAVY})` : CARD, color: on ? '#fff' : INK, fontSize: 16.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                          {n}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
