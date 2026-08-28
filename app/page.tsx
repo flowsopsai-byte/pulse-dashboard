@@ -63,6 +63,9 @@ const styleCss = `
   .chip .bar { height: 5px; background: rgba(255,255,255,0.15); border-radius: 3px; margin-top: 9px; overflow: hidden; }
   .chip .bar i { display: block; height: 100%; border-radius: 3px; background: var(--teal); }
   .chip .bar i.g { background: var(--gold); }
+  .chip { cursor: pointer; }
+  .chip-detail { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.15); font-size: 12px; opacity: 0.85; line-height: 1.4; }
+  .chip-detail.open { display: block; }
   .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 18px; margin-top: 22px; }
   .card { background: var(--card); border-radius: 18px; padding: 22px; border: 1px solid var(--line); }
   .col-8 { grid-column: span 8; }
@@ -277,12 +280,12 @@ function buildHtml(d) {
             '</div>' +            
             '</div>' +
             '<div class="breakdown">' +
-            '<div class="chip"><div class="lab">&#x1F634; Sleep</div><div class="val">' + sleep + ' / 20</div><div class="bar"><i style="width:' + Math.round(sleep/20*100) + '%"></i></div></div>' +            
-            '<div class="chip"><div class="lab">&#x1F50B; Recovery</div><div class="val">' + recup + ' / 20</div><div class="bar"><i style="width:' + Math.round(recup/20*100) + '%"></i></div></div>' +
-            '<div class="chip"><div class="lab">&#x1F4AA; Activity</div><div class="val">' + activite + ' / 20</div><div class="bar"><i style="width:' + Math.round(activite/20*100) + '%"></i></div></div>' +
-            '<div class="chip"><div class="lab">&#x1F957; Nutrition</div><div class="val">' + nutrition + ' / 20</div><div class="bar"><i class="g" style="width:' + Math.round(nutrition/20*100) + '%"></i></div></div>' +            
-            '<div class="chip"><div class="lab">&#x1F9E0; Mood</div><div class="val">' + ressenti + ' / 20</div><div class="bar"><i style="width:' + Math.round(ressenti/20*100) + '%"></i></div></div>' +          '</div>' +
-        '</div>' +
+            '<div class="chip" data-chip="sommeil"><div class="lab">&#x1F634; Sleep</div><div class="val">' + sleep + ' / 20</div><div class="bar"><i style="width:' + Math.round(sleep/20*100) + '%"></i></div><div class="chip-detail" id="detail-sommeil">' + (d.detail_texte ? d.detail_texte.sommeil : '') + '</div></div>' +
+            '<div class="chip" data-chip="recup"><div class="lab">&#x1F50B; Recovery</div><div class="val">' + recup + ' / 20</div><div class="bar"><i style="width:' + Math.round(recup/20*100) + '%"></i></div><div class="chip-detail" id="detail-recup">' + (d.detail_texte ? d.detail_texte.recup : '') + '</div></div>' +
+            '<div class="chip" data-chip="activite"><div class="lab">&#x1F4AA; Activity</div><div class="val">' + activite + ' / 20</div><div class="bar"><i style="width:' + Math.round(activite/20*100) + '%"></i></div><div class="chip-detail" id="detail-activite">' + (d.detail_texte ? d.detail_texte.activite : '') + '</div></div>' +
+            '<div class="chip" data-chip="nutrition"><div class="lab">&#x1F957; Nutrition</div><div class="val">' + nutrition + ' / 20</div><div class="bar"><i class="g" style="width:' + Math.round(nutrition/20*100) + '%"></i></div><div class="chip-detail" id="detail-nutrition">' + (d.detail_texte ? d.detail_texte.nutrition : '') + '</div></div>' +
+            '<div class="chip" data-chip="ressenti"><div class="lab">&#x1F9E0; Mood</div><div class="val">' + ressenti + ' / 20</div><div class="bar"><i style="width:' + Math.round(ressenti/20*100) + '%"></i></div><div class="chip-detail" id="detail-ressenti">' + (d.detail_texte ? d.detail_texte.ressenti : '') + '</div></div>' +
+            '</div>' +
       '</div>' +
     '</section>' +
     '<div class="grid">' +
@@ -351,7 +354,10 @@ export default function Home() {
     fetch('/api/pulse')
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        var row = (data && data[0]) ? data[0] : {};
+var row = (data && data[0]) ? data[0] : {};
+if (row.detail_texte && typeof row.detail_texte === 'string') {
+  try { row.detail_texte = JSON.parse(row.detail_texte); } catch (e) {}
+}
         var score = row.pulse_score || 0;
         var container = document.getElementById('pulse-root');
         if (container) container.innerHTML = buildHtml(row);
@@ -397,7 +403,14 @@ export default function Home() {
             paintHydration();
           })
           .catch(function() {});
-      }
+      }      
+      document.querySelectorAll('.chip').forEach(function(c) {
+        c.addEventListener('click', function() {
+          var key = c.getAttribute('data-chip');
+          var det = document.getElementById('detail-' + key);
+          if (det) det.classList.toggle('open');
+        });
+      });
       loadHydration();
 
       var hydraBottle = document.getElementById('hydraBottle');
