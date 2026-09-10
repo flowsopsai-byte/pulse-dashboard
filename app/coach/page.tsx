@@ -33,6 +33,7 @@ export default function CoachPage() {
   const [recording, setRecording] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
   const [speaking, setSpeaking] = useState(false);
+  const [level, setLevel] = useState(0);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
@@ -40,6 +41,9 @@ export default function CoachPage() {
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -159,6 +163,22 @@ export default function CoachPage() {
           setTranscribing(false);
         }
       };
+            const ctx = new AudioContext();
+      audioCtxRef.current = ctx;
+      const source = ctx.createMediaStreamSource(stream);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      source.connect(analyser);
+      analyserRef.current = analyser;
+
+      const buf = new Uint8Array(analyser.frequencyBinCount);
+      const tick = () => {
+        analyser.getByteFrequencyData(buf);
+        const avg = buf.reduce((s, v) => s + v, 0) / buf.length;
+        setLevel(Math.min(1, avg / 70));
+        rafRef.current = requestAnimationFrame(tick);
+      };
+      tick();
       recorder.start();
       setRecording(true);
     } catch {
@@ -167,6 +187,12 @@ export default function CoachPage() {
   }
 
   function stopRecording() {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = null;
+    audioCtxRef.current?.close();
+    audioCtxRef.current = null;
+    analyserRef.current = null;
+    setLevel(0);
     recorderRef.current?.stop();
     recorderRef.current = null;
     setRecording(false);
@@ -212,10 +238,28 @@ export default function CoachPage() {
         </div>
         <div style={{ minWidth: 0, flex: '1 1 auto' }}>
           <div style={{ fontWeight: 700, fontSize: 15.5, color: NAVY, lineHeight: 1.2 }}>Pulse Coach</div>
-          <div style={{ fontSize: 12, color: MIST, lineHeight: 1.3 }}>
-            {recording ? 'listening…' : transcribing ? 'transcribing…' : loading ? 'typing…' : speaking ? 'speaking…' : 'online'}
+          <div style={{ fontSize: 12, color: MIST, lineHeight: 1.3, display: 'flex', alignItems: 'center', gap: 7 }}>
+            {recording ? (
+              <>
+                <span style={{ display: 'inline-flex', alignItems: 'flex-end', gap: 2, height: 13 }}>
+                  {[0, 1, 2, 3, 4].map((i) => (
+                    <span
+                      key={i}
+                      style={{
+                        width: 3,
+                        borderRadius: 2,
+                        background: '#c0392b',
+                        height: `${3 + level * 10 * [0.5, 0.85, 1, 0.85, 0.5][i]}px`,
+                        transition: 'height .07s linear',
+                      }}
+                    />
+                  ))}
+                </span>
+                listening…
+              </>
+            ) : transcribing ? 'transcribing…' : loading ? 'typing…' : speaking ? 'speaking…' : 'online'}
+          </div>        
           </div>
-        </div>
         {speaking && (
           <button onClick={stopSpeaking} aria-label="Stop audio" style={{ flex: '0 0 auto', width: 34, height: 34, borderRadius: 10, border: `1px solid ${LINE}`, background: 'transparent', color: SLATE, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
