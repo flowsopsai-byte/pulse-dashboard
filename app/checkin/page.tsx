@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import VoiceInput from '../components/VoiceInput';
 
 const NAVY = '#1B3A6B';
 const TEAL = '#2E9E9E';
@@ -224,11 +225,22 @@ export default function CheckinPage() {
           )}
 
           {cur.type === 'text' && (
-            <textarea className="ck-ta" value={String(val)} onChange={(e) => set(cur.key, e.target.value)}
-              placeholder={cur.required ? 'Your answer…' : 'Your answer (optional)…'} rows={5}
-              style={{ width: '100%', resize: 'none', padding: '14px 16px', borderRadius: 15, border: `1px solid ${LINE}`, background: TEAL_SOFT, color: INK, fontSize: 15.5, lineHeight: 1.5, fontFamily: 'inherit', outline: 'none' }} />
+            <div>
+              <div style={{ marginBottom: 10 }}>
+                <VoiceInput
+                  onTranscript={(text) =>
+                    setA((p) => {
+                      const prev = String(p[cur.key] ?? '');
+                      return { ...p, [cur.key]: prev ? prev + ' ' + text : text };
+                    })
+                  }
+                />
+              </div>
+              <textarea className="ck-ta" value={String(val)} onChange={(e) => set(cur.key, e.target.value)}
+                placeholder={cur.required ? 'Your answer…' : 'Your answer (optional)…'} rows={5}
+                style={{ width: '100%', resize: 'none', padding: '14px 16px', borderRadius: 15, border: `1px solid ${LINE}`, background: TEAL_SOFT, color: INK, fontSize: 15.5, lineHeight: 1.5, fontFamily: 'inherit', outline: 'none' }} />
+            </div>
           )}
-
           {err && <div style={{ marginTop: 16, fontSize: 13.5, color: '#c0392b' }}>{err}</div>}
         </div>
       </div>
